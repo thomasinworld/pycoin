@@ -49,17 +49,20 @@ def main():
     
     # Create blockchain with difficulty 4 (4 leading zeros)
     # Lower difficulty = faster mining for demo purposes
-    blockchain = Blockchain(difficulty=4, block_reward=50_00000000)  # 50 PYC
+    blockchain = Blockchain(difficulty=4, initial_reward=50_00000000)  # 50 PYC
     
     print("Blockchain initialized")
     print(f"  Difficulty: {blockchain.difficulty}")
-    print(f"  Block Reward: {blockchain.block_reward / 100000000} PYC\n")
+    print(f"  Initial Block Reward: {blockchain.initial_reward / 100000000} PYC")
+    print(f"  Halving Interval: Every {blockchain.halving_interval:,} blocks")
+    print(f"  Max Supply: 21,000,000 PYC (just like Bitcoin!)\n")
     
     # Mine genesis block (reward goes to miner)
     genesis = blockchain.create_genesis_block(miner.address)
     
+    reward = blockchain.get_block_reward(0)
     print(f"\nGenesis block mined!")
-    print(f"  Miner reward: {blockchain.block_reward / 100000000} PYC")
+    print(f"  Miner reward: {reward / 100000000} PYC")
     
     # Show balances
     print("\nBalances after genesis:")
@@ -92,10 +95,11 @@ def main():
     block1 = blockchain.mine_pending_transactions(miner.address)
     
     if block1:
+        reward = blockchain.get_block_reward(1)
         print(f"\nBlock 1 mined successfully!")
         print(f"  Hash: {block1.hash}")
         print(f"  Transactions: {len(block1.transactions)}")
-        print(f"  Miner reward: {blockchain.block_reward / 100000000} PYC")
+        print(f"  Miner reward: {reward / 100000000} PYC")
     
     # Show updated balances
     print("\nBalances after Block 1:")
@@ -187,8 +191,10 @@ def main():
         balance = wallet.get_balance_btc(blockchain)
         print(f"  {name}: {balance:.8f} PYC")
     
+    total_minted = sum(blockchain.get_block_reward(i) for i in range(len(blockchain.chain)))
     print(f"\nTotal Supply: {sum(w.get_balance_btc(blockchain) for w in manager.wallets.values()):.8f} PYC")
-    print(f"Expected Supply: {len(blockchain.chain) * (blockchain.block_reward / 100000000):.8f} PYC")
+    print(f"Expected Supply: {total_minted / 100000000:.8f} PYC")
+    print(f"Remaining Until Cap: {(21_000_000 - total_minted / 100000000):,.2f} PYC")
     
     print_section("DEMO COMPLETE")
     print("PyCoin successfully demonstrated cryptocurrency core concepts!")

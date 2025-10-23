@@ -15,18 +15,22 @@ class Blockchain:
     PyCoin blockchain managing the chain of blocks.
     """
     
-    def __init__(self, difficulty: int = 4, block_reward: int = 50_00000000):
+    def __init__(self, difficulty: int = 4, initial_reward: int = 50_00000000):
         """
         Initialize blockchain.
         
         Args:
             difficulty: Mining difficulty (number of leading zeros)
-            block_reward: Mining reward in guidos (default: 50 PYC)
+            initial_reward: Initial mining reward in guidos (default: 50 PYC)
         """
         self.chain: List[Block] = []
         self.difficulty = difficulty
-        self.block_reward = block_reward
+        self.initial_reward = initial_reward
         self.pending_transactions: List[Transaction] = []
+        
+        # Bitcoin-style halving: reward halves every 210,000 blocks
+        # This caps total supply at 21 million PYC (just like Bitcoin!)
+        self.halving_interval = 210000
         
         # UTXO (Unspent Transaction Output) set
         # Maps "tx_id:output_index" -> TransactionOutput
@@ -34,6 +38,23 @@ class Blockchain:
         
         # Track spent outputs
         self.spent_outputs: set = set()
+    
+    def get_block_reward(self, block_height: int) -> int:
+        """
+        Calculate block reward with halving (Bitcoin-style).
+        Reward halves every 210,000 blocks, capping supply at 21 million PYC.
+        
+        Args:
+            block_height: Height of the block
+            
+        Returns:
+            Block reward in guidos
+        """
+        halvings = block_height // self.halving_interval
+        # If we've had 64 or more halvings, reward becomes 0
+        if halvings >= 64:
+            return 0
+        return self.initial_reward >> halvings  # Bit shift is faster than division
     
     def create_genesis_block(self, miner_address: str) -> Block:
         """
@@ -45,7 +66,7 @@ class Blockchain:
         Returns:
             Genesis block
         """
-        genesis = create_genesis_block(miner_address, self.block_reward, self.difficulty)
+        genesis = create_genesis_block(miner_address, self.initial_reward, self.difficulty)
         genesis.mine(self.difficulty)
         self.chain.append(genesis)
         
@@ -104,11 +125,12 @@ class Blockchain:
             print("No genesis block. Create genesis block first.")
             return None
         
-        # Create coinbase transaction for miner reward
+        # Create coinbase transaction for miner reward (with halving)
         block_height = len(self.chain)
+        block_reward = self.get_block_reward(block_height)
         coinbase = create_coinbase_transaction(
             miner_address,
-            self.block_reward,
+            block_reward,
             block_height
         )
         
@@ -331,7 +353,8 @@ class Blockchain:
         """
         return {
             'difficulty': self.difficulty,
-            'block_reward': self.block_reward,
+            'initial_reward': self.initial_reward,
+            'halving_interval': self.halving_interval,
             'chain': [block.to_dict() for block in self.chain],
             'pending_transactions': [tx.to_dict() for tx in self.pending_transactions]
         }
@@ -363,7 +386,7 @@ class Blockchain:
         
         blockchain = cls(
             difficulty=data['difficulty'],
-            block_reward=data['block_reward']
+            initial_reward=data.get('initial_reward', data.get('block_reward', 50_00000000))
         )
         
         # Rebuild chain
@@ -394,7 +417,8 @@ class Blockchain:
         print(f"BLOCKCHAIN ({len(self.chain)} blocks)")
         print(f"{'='*80}")
         print(f"Difficulty: {self.difficulty}")
-        print(f"Block Reward: {self.block_reward / 100000000} PYC")
+        current_reward = self.get_block_reward(len(self.chain))
+        print(f"Current Block Reward: {current_reward / 100000000} PYC")
         print(f"Pending Transactions: {len(self.pending_transactions)}")
         print(f"UTXO Set Size: {len(self.utxo)}")
         print()
