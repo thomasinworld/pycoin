@@ -931,24 +931,36 @@
         }
 
         function showWallets() {
-            let message = 'Wallets:\n';
-            fetch('/api/demo_state')
-                .then(response => response.json())
-                .then(data => {
-                    for (const [name, wallet] of Object.entries(data.wallets)) {
-                        message += `\n${name}: ${wallet.balance.toFixed(8)} PYC`;
+            fetch('/api/show_wallets')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch wallets');
                     }
-                    showStatus('action-status', message);
+                    return response.json();
+                })
+                .then(data => {
+                    showStatus('action-status', data.wallets.join('\n') || 'No wallets');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showStatus('action-status', 'Error fetching wallets', true);
                 });
         }
 
         function showBlockchainInfo() {
-            fetch('/api/demo_state')
-                .then(response => response.json())
+            fetch('/api/blockchain_info')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch blockchain info');
+                    }
+                    return response.json();
+                })
                 .then(data => {
-                    const bc = data.blockchain;
-                    const message = `Blocks: ${bc.chain.length} | Pending TXs: ${bc.pending_transactions.length} | Difficulty: ${bc.difficulty}`;
-                    showStatus('action-status', message);
+                    showStatus('action-status', data.info);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showStatus('action-status', 'Error fetching blockchain info', true);
                 });
         }
 
@@ -1185,26 +1197,26 @@
         }
 
         function restartDemo() {
-            clearTimeout(animationState.intervalId);
-            
-            // Clear all output items
-            outputItems = [];
-            animationState.currentIndex = 0;
-            
-            // Clear display
-            const container = document.getElementById('terminal-output');
-            if (container) {
-                container.innerHTML = '';
-            }
-            
-            if (isLiveMode) {
-                // For live mode, reload the page to restart demo
+            // Call backend to clear state, then reload page for fresh demo
+            fetch('/api/restart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload page to restart demo completely
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error restarting:', error);
+                // Fallback: reload page anyway
                 window.location.reload();
-            } else {
-                // For static mode, rebuild timeline
-                buildStaticTimeline();
-                setTimeout(() => startAnimation(), 500);
-            }
+            });
         }
 
 

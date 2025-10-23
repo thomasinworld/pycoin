@@ -74,6 +74,59 @@ class DemoHTTPHandler(SimpleHTTPRequestHandler):
             
             response = {'valid': is_valid}
             self.wfile.write(json.dumps(response).encode())
+        elif self.path == '/api/show_wallets':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            # Build wallet info
+            wallet_info = []
+            for name, wallet in DEMO_STATE['wallets'].items():
+                balance = wallet.get_balance_btc(DEMO_STATE['blockchain']) if DEMO_STATE['blockchain'] else 0
+                wallet_info.append(f"{name}: {balance:.2f} pyc ({wallet.address})")
+            
+            # Add as a step
+            DEMO_STATE['step'] += 1
+            update_demo_state(
+                DEMO_STATE['blockchain'],
+                DEMO_STATE['wallets'],
+                DEMO_STATE['step'],
+                "Wallets Displayed",
+                "\n".join(wallet_info) if wallet_info else "no wallets found"
+            )
+            
+            response = {'wallets': wallet_info}
+            self.wfile.write(json.dumps(response).encode())
+        elif self.path == '/api/blockchain_info':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            if DEMO_STATE['blockchain']:
+                bc = DEMO_STATE['blockchain']
+                info = (
+                    f"blocks: {len(bc.chain)} | "
+                    f"pending transactions: {len(bc.pending_transactions)} | "
+                    f"difficulty: {bc.difficulty} zeros | "
+                    f"reward: {bc.get_block_reward(len(bc.chain)) / 100000000:.2f} pyc"
+                )
+            else:
+                info = "blockchain not initialized"
+            
+            # Add as a step
+            DEMO_STATE['step'] += 1
+            update_demo_state(
+                DEMO_STATE['blockchain'],
+                DEMO_STATE['wallets'],
+                DEMO_STATE['step'],
+                "Blockchain Info",
+                info
+            )
+            
+            response = {'info': info}
+            self.wfile.write(json.dumps(response).encode())
         else:
             super().do_GET()
     
@@ -226,6 +279,29 @@ class DemoHTTPHandler(SimpleHTTPRequestHandler):
                     'block_index': block.index,
                     'reward': reward / 100000000
                 }
+                self.wfile.write(json.dumps(response).encode())
+            except Exception as e:
+                self.send_response(400)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                response = {'success': False, 'error': str(e)}
+                self.wfile.write(json.dumps(response).encode())
+        elif self.path == '/api/restart':
+            try:
+                # Reset demo state
+                DEMO_STATE['blockchain'] = None
+                DEMO_STATE['wallets'] = {}
+                DEMO_STATE['step'] = 0
+                DEMO_STATE['message'] = ''
+                DEMO_STATE['narrative'] = ''
+                DEMO_STATE['completed'] = False
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                response = {'success': True, 'message': 'Demo restarted'}
                 self.wfile.write(json.dumps(response).encode())
             except Exception as e:
                 self.send_response(400)
