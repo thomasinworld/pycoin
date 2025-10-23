@@ -199,8 +199,6 @@
         }
 
         .detail-line {
-            display: flex;
-            justify-content: space-between;
             margin: 6px 0;
             padding: 4px 0;
         }
@@ -208,6 +206,7 @@
         .detail-label {
             color: #858585;
             font-size: 1em;
+            display: inline;
         }
 
         .detail-value {
@@ -215,6 +214,8 @@
             font-weight: bold;
             font-size: 1em;
             word-break: break-all;
+            display: inline;
+            margin-left: 8px;
         }
 
         .transactions-section {
@@ -246,14 +247,14 @@
         .tx-narrative {
             color: #ffd43b;
             font-weight: bold;
-            margin-bottom: 6px;
-            font-size: 1.05em;
+            margin-bottom: 8px;
+            font-size: 1.15em;
         }
 
         .tx-id {
             color: #858585;
-            font-size: 0.85em;
-            margin-bottom: 6px;
+            font-size: 0.95em;
+            margin-bottom: 8px;
             word-break: break-all;
             line-height: 1.5;
         }
@@ -267,7 +268,7 @@
 
         .tx-from, .tx-to {
             flex: 1;
-            font-size: 0.9em;
+            font-size: 1em;
         }
 
         .tx-arrow {
@@ -279,13 +280,19 @@
             color: #d4d4d4;
             font-family: 'Consolas', monospace;
             word-break: break-all;
-            line-height: 1.5;
+            line-height: 1.6;
+        }
+
+        .wallet-name {
+            color: #9cdcfe;
+            font-weight: bold;
+            margin-left: 6px;
         }
 
         .amount {
             color: #ffd43b;
             font-weight: bold;
-            font-size: 1.05em;
+            font-size: 1.1em;
         }
 
         .badge {
@@ -376,6 +383,7 @@
         let isLiveMode = false;
         let liveUpdateInterval = null;
         let outputItems = []; // Stores {type: 'log'|'block', data: ...}
+        let walletMap = {}; // Maps addresses to names
 
         document.getElementById('file-input').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -478,6 +486,14 @@
                     if (data.blockchain) {
                         blockchainData = data.blockchain;
                         displayStats();
+                        
+                        // Update wallet map from data
+                        if (data.wallets) {
+                            walletMap = {};
+                            for (const [name, wallet] of Object.entries(data.wallets)) {
+                                walletMap[wallet.address] = name;
+                            }
+                        }
                         
                         // Check if new blocks need to be added
                         const blockCount = blockchainData.chain.length;
@@ -630,12 +646,12 @@
                     </div>
                     <div class="detail-line">
                         <span class="detail-label">previous hash:</span>
-                        <span class="detail-value">${block.previous_hash}</span>
                     </div>
-                    <div class="detail-line">
+                    <div class="detail-value" style="margin-left: 0; display: block; margin-top: 4px;">${block.previous_hash}</div>
+                    <div class="detail-line" style="margin-top: 8px;">
                         <span class="detail-label">merkle root:</span>
-                        <span class="detail-value">${block.merkle_root}</span>
                     </div>
+                    <div class="detail-value" style="margin-left: 0; display: block; margin-top: 4px;">${block.merkle_root}</div>
                 </div>
 
                     <div class="transactions-section">
@@ -646,18 +662,28 @@
             `;
         }
 
+        function getWalletName(address) {
+            return walletMap[address] || '';
+        }
+
+        function formatAddressWithName(address) {
+            const name = getWalletName(address);
+            return name ? `${address} <span class="wallet-name">(${name})</span>` : address;
+        }
+
         function generateTransactionHTML(tx) {
             const isCoinbase = tx.inputs[0].prev_tx_id === '0'.repeat(64);
             let narrative = '';
             
             if (isCoinbase) {
                 const reward = tx.outputs[0].amount / 100000000;
-                narrative = `⛏ mining → ${reward.toFixed(2)} pyc`;
+                const recipient = getWalletName(tx.outputs[0].recipient_address);
+                narrative = `⛏ mining reward → ${recipient || 'miner'} receives ${reward.toFixed(2)} pyc`;
             } else if (tx.outputs.length >= 2) {
                 const amount = tx.outputs[0].amount / 100000000;
-                const from = tx.outputs[1].recipient_address.substring(0, 6);
-                const to = tx.outputs[0].recipient_address.substring(0, 6);
-                narrative = `${from}... → ${to}... (${amount.toFixed(2)} pyc)`;
+                const fromName = getWalletName(tx.outputs[1].recipient_address);
+                const toName = getWalletName(tx.outputs[0].recipient_address);
+                narrative = `💸 ${fromName || 'sender'} → ${toName || 'recipient'} (${amount.toFixed(2)} pyc)`;
             }
 
             return `
@@ -667,8 +693,8 @@
                     <div class="tx-flow">
                         <div class="tx-from">
                             ${tx.outputs.map(out => `
-                                <div style="margin: 8px 0;">
-                                    <div class="address-short">recipient: ${out.recipient_address}</div>
+                                <div style="margin: 10px 0;">
+                                    <div class="address-short">recipient: ${formatAddressWithName(out.recipient_address)}</div>
                                     <div class="amount">${(out.amount / 100000000).toFixed(8)} pyc</div>
                                 </div>
                             `).join('')}

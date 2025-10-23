@@ -126,8 +126,12 @@ Starting server and opening visualization...
     bob = manager.create_wallet("Bob")
     miner = manager.create_wallet("Miner")
     
-    update_demo_state(None, manager.wallets, 1, "Creating Wallets",
-                     "Created 3 wallets: Alice, Bob, and Miner")
+    narrative = (f"Created 3 wallets:\n"
+                f"    Alice: {alice.address}\n"
+                f"    Bob: {bob.address}\n"
+                f"    Miner: {miner.address}")
+    
+    update_demo_state(None, manager.wallets, 1, "Creating Wallets", narrative)
     time.sleep(2)
     
     # ============================================================================
@@ -158,7 +162,7 @@ Starting server and opening visualization...
     print(f"  Miner reward: {reward / 100000000} PYC")
     
     update_demo_state(blockchain, manager.wallets, 4, "Genesis Block Mined!",
-                     f"⛏️ Mining Reward: Miner receives {reward / 100000000} PYC")
+                     f"⛏️ Mining Reward: Miner {miner.address[:16]}... receives {reward / 100000000} PYC")
     
     print("\nBalances after genesis:")
     manager.list_wallets(blockchain)
@@ -171,14 +175,14 @@ Starting server and opening visualization...
     
     print("Transaction 1: Miner -> Alice (20 PYC)")
     update_demo_state(blockchain, manager.wallets, 5, "Creating Transaction",
-                     "📤 Miner sends 20 PYC to Alice")
+                     f"📤 Miner {miner.address[:16]}... sends 20 PYC to Alice {alice.address[:16]}...")
     
     tx1 = miner.send(blockchain, alice.address, 20.0, fee_btc=0.001)
     time.sleep(2)
     
     print("\nTransaction 2: Miner -> Bob (15 PYC)")
     update_demo_state(blockchain, manager.wallets, 6, "Creating Transaction",
-                     "📤 Miner sends 15 PYC to Bob")
+                     f"📤 Miner {miner.address[:16]}... sends 15 PYC to Bob {bob.address[:16]}...")
     
     tx2 = miner.send(blockchain, bob.address, 15.0, fee_btc=0.001)
     
@@ -208,7 +212,7 @@ Starting server and opening visualization...
         print(f"  Miner reward: {reward / 100000000} PYC")
         
         update_demo_state(blockchain, manager.wallets, 8, "Block 1 Mined!",
-                         f"Block confirmed! Miner earned {reward / 100000000} PYC reward")
+                         f"Block confirmed! Miner {miner.address[:16]}... earned {reward / 100000000} PYC reward")
     
     print("\nBalances after Block 1:")
     manager.list_wallets(blockchain)
@@ -221,14 +225,14 @@ Starting server and opening visualization...
     
     print("Transaction 3: Alice -> Bob (5 PYC)")
     update_demo_state(blockchain, manager.wallets, 9, "Creating Transaction",
-                     "📤 Alice sends 5 PYC to Bob")
+                     f"📤 Alice {alice.address[:16]}... sends 5 PYC to Bob {bob.address[:16]}...")
     
     tx3 = alice.send(blockchain, bob.address, 5.0, fee_btc=0.001)
     time.sleep(2)
     
     print("\nTransaction 4: Bob -> Alice (10 PYC)")
     update_demo_state(blockchain, manager.wallets, 10, "Creating Transaction",
-                     "📤 Bob sends 10 PYC back to Alice")
+                     f"📤 Bob {bob.address[:16]}... sends 10 PYC back to Alice {alice.address[:16]}...")
     
     tx4 = bob.send(blockchain, alice.address, 10.0, fee_btc=0.001)
     
@@ -251,9 +255,13 @@ Starting server and opening visualization...
     block2 = blockchain.mine_pending_transactions(miner.address)
     
     if block2:
+        reward = blockchain.get_block_reward(2)
         print(f"\nBlock 2 mined successfully!")
         print(f"  Hash: {block2.hash}")
         print(f"  Transactions: {len(block2.transactions)}")
+        
+        update_demo_state(blockchain, manager.wallets, 12, "Block 2 Mined!",
+                         f"Block confirmed! Miner {miner.address[:16]}... earned {reward / 100000000} PYC reward")
     
     print("\nFinal Balances:")
     manager.list_wallets(blockchain)
@@ -265,7 +273,7 @@ Starting server and opening visualization...
     print_section("STEP 7: Validating Blockchain")
     
     print("Running blockchain validation...")
-    update_demo_state(blockchain, manager.wallets, 12, "Validating Blockchain...",
+    update_demo_state(blockchain, manager.wallets, 13, "Validating Blockchain...",
                      "Checking all blocks and transactions for integrity")
     time.sleep(1)
     
@@ -273,11 +281,11 @@ Starting server and opening visualization...
     
     if is_valid:
         print("✓ Blockchain is VALID!")
-        update_demo_state(blockchain, manager.wallets, 13, "✓ Blockchain Validated!",
+        update_demo_state(blockchain, manager.wallets, 14, "✓ Blockchain Validated!",
                          "All blocks and transactions verified successfully")
     else:
         print("✗ Blockchain is INVALID!")
-        update_demo_state(blockchain, manager.wallets, 13, "✗ Validation Failed",
+        update_demo_state(blockchain, manager.wallets, 14, "✗ Validation Failed",
                          "Blockchain integrity check failed")
         sys.exit(1)
     
@@ -305,8 +313,8 @@ Starting server and opening visualization...
     print(f"Expected Supply: {total_minted / 100000000:.8f} PYC")
     print(f"Remaining Until Cap: {(21_000_000 - total_minted / 100000000):,.2f} PYC")
     
-    update_demo_state(blockchain, manager.wallets, 14, "Demo Complete!",
-                     f"Alice: {alice.get_balance_btc(blockchain):.2f} PYC | "
+    update_demo_state(blockchain, manager.wallets, 15, "Demo Complete!",
+                     f"Final balances → Alice: {alice.get_balance_btc(blockchain):.2f} PYC | "
                      f"Bob: {bob.get_balance_btc(blockchain):.2f} PYC | "
                      f"Miner: {miner.get_balance_btc(blockchain):.2f} PYC")
     
