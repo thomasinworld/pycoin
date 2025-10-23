@@ -297,6 +297,10 @@ class DemoHTTPHandler(SimpleHTTPRequestHandler):
                 DEMO_STATE['narrative'] = ''
                 DEMO_STATE['completed'] = False
                 
+                # Start demo sequence in background thread
+                demo_thread = threading.Thread(target=run_demo_sequence, daemon=True)
+                demo_thread.start()
+                
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
@@ -347,6 +351,235 @@ def print_section(title: str) -> None:
     print(f"\n{'='*80}")
     print(f"{title:^80}")
     print(f"{'='*80}\n")
+
+
+def run_demo_sequence():
+    """Run the complete demo sequence. Can be called on start or restart."""
+    global DEMO_STATE
+    
+    print("\n✨ Starting demo sequence...\n")
+    
+    # ============================================================================
+    # Step 1: Create Blockchain
+    # ============================================================================
+    print_section("STEP 1: Creating Blockchain")
+    
+    blockchain = Blockchain(difficulty=4, initial_reward=50_00000000)
+    DEMO_STATE['blockchain'] = blockchain
+    
+    print("Blockchain initialized")
+    print(f"  Difficulty: {blockchain.difficulty}")
+    print(f"  Initial Block Reward: {blockchain.initial_reward / 100000000} PYC")
+    print(f"  Halving Interval: Every {blockchain.halving_interval:,} blocks")
+    print(f"  Max Supply: 21,000,000 PYC (just like Bitcoin!)\n")
+    
+    update_demo_state(blockchain, {}, 1, "Blockchain Initialized",
+                     f"Max supply: 21 million PYC with halving every {blockchain.halving_interval:,} blocks")
+    time.sleep(2)
+    
+    # ============================================================================
+    # Step 2: Create Wallets
+    # ============================================================================
+    print_section("STEP 2: Creating Wallets")
+    
+    manager = WalletManager()
+    alice = manager.create_wallet("alice")
+    bob = manager.create_wallet("bob")
+    miner = manager.create_wallet("miner")
+    
+    DEMO_STATE['wallets'] = manager.wallets
+    
+    narrative = (
+        f"Created 3 wallets:\n"
+        f"\n"
+        f"  alice:\n"
+        f"    {alice.address}\n"
+        f"\n"
+        f"  bob:\n"
+        f"    {bob.address}\n"
+        f"\n"
+        f"  miner:\n"
+        f"    {miner.address}"
+    )
+    
+    update_demo_state(blockchain, manager.wallets, 2, "Creating Wallets", narrative)
+    time.sleep(2)
+    
+    # ============================================================================
+    # Step 3: Mine Genesis Block
+    # ============================================================================
+    print_section("STEP 3: Mining Genesis Block")
+    
+    update_demo_state(blockchain, manager.wallets, 3, "Mining Genesis Block...",
+                     "Miner is solving the proof-of-work puzzle (finding nonce)...")
+    
+    genesis = blockchain.create_genesis_block(miner.address)
+    reward = blockchain.get_block_reward(0)
+    
+    print(f"\nGenesis block mined!")
+    print(f"  Miner reward: {reward / 100000000} PYC")
+    
+    update_demo_state(blockchain, manager.wallets, 4, "Genesis Block Mined!",
+                     f"⛏️ Mining Reward: Miner receives {reward / 100000000} PYC\n  Address: {miner.address}")
+    
+    print("\nBalances after genesis:")
+    manager.list_wallets(blockchain)
+    time.sleep(3)
+    
+    # ============================================================================
+    # Step 4: Create Transactions
+    # ============================================================================
+    print_section("STEP 4: Creating Transactions")
+    
+    print("Transaction 1: Miner -> Alice (20 PYC)")
+    update_demo_state(blockchain, manager.wallets, 5, "Creating Transaction",
+                     f"📤 Miner sends 20 PYC to Alice\n  From: {miner.address}\n  To: {alice.address}")
+    
+    tx1 = miner.send(blockchain, alice.address, 20.0, fee_btc=0.001)
+    if tx1:
+        print("  Transaction created and added to mempool")
+        print(f"  TX ID: {tx1.tx_id}\n")
+    time.sleep(2)
+    
+    print("Transaction 2: Miner -> Bob (15 PYC)")
+    update_demo_state(blockchain, manager.wallets, 6, "Creating Transaction",
+                     f"📤 Miner sends 15 PYC to Bob\n  From: {miner.address}\n  To: {bob.address}")
+    
+    tx2 = miner.send(blockchain, bob.address, 15.0, fee_btc=0.001)
+    if tx2:
+        print("  Transaction created and added to mempool")
+        print(f"  TX ID: {tx2.tx_id}\n")
+    time.sleep(2)
+    
+    print(f"Pending transactions: {len(blockchain.pending_transactions)}")
+    
+    # ============================================================================
+    # Step 5: Mine Block 1
+    # ============================================================================
+    print_section("STEP 5: Mining Block 1")
+    
+    update_demo_state(blockchain, manager.wallets, 7, "Mining Block 1...",
+                     "Miner is including pending transactions in new block...")
+    
+    print("Mining block with pending transactions...")
+    block1 = blockchain.mine_pending_transactions(miner.address)
+    reward = blockchain.get_block_reward(1)
+    
+    print(f"\nBlock 1 mined!")
+    print(f"  Hash: {block1.hash}")
+    print(f"  Transactions: {len(block1.transactions)}")
+    print(f"  Miner reward: {reward / 100000000} PYC")
+    
+    update_demo_state(blockchain, manager.wallets, 8, "Block 1 Mined!",
+                     f"✅ Transactions confirmed! Miner earned {reward / 100000000} PYC reward\n  Address: {miner.address}")
+    
+    print("\nBalances after block 1:")
+    manager.list_wallets(blockchain)
+    time.sleep(3)
+    
+    # ============================================================================
+    # Step 6: More Transactions
+    # ============================================================================
+    print_section("STEP 6: More Transactions")
+    
+    print("Transaction 3: Alice -> Bob (5 PYC)")
+    update_demo_state(blockchain, manager.wallets, 9, "Creating Transaction",
+                     f"📤 Alice sends 5 PYC to Bob\n  From: {alice.address}\n  To: {bob.address}")
+    
+    tx3 = alice.send(blockchain, bob.address, 5.0, fee_btc=0.001)
+    if tx3:
+        print("  Transaction created and added to mempool")
+        print(f"  TX ID: {tx3.tx_id}\n")
+    time.sleep(2)
+    
+    # ============================================================================
+    # Step 7: Mine Block 2
+    # ============================================================================
+    print_section("STEP 7: Mining Block 2")
+    
+    update_demo_state(blockchain, manager.wallets, 10, "Mining Block 2...",
+                     "Miner is mining another block...")
+    
+    print("Mining block with pending transactions...")
+    block2 = blockchain.mine_pending_transactions(miner.address)
+    reward = blockchain.get_block_reward(2)
+    
+    print(f"\nBlock 2 mined!")
+    print(f"  Hash: {block2.hash}")
+    print(f"  Transactions: {len(block2.transactions)}")
+    print(f"  Miner reward: {reward / 100000000} PYC")
+    
+    update_demo_state(blockchain, manager.wallets, 11, "Block 2 Mined!",
+                     f"✅ Block confirmed! Miner earned {reward / 100000000} PYC reward\n  Address: {miner.address}")
+    
+    print("\nBalances after block 2:")
+    manager.list_wallets(blockchain)
+    time.sleep(3)
+    
+    # ============================================================================
+    # Step 8: Validate Blockchain
+    # ============================================================================
+    print_section("STEP 8: Validating Blockchain")
+    
+    update_demo_state(blockchain, manager.wallets, 12, "Validating Chain...",
+                     "Checking all blocks, hashes, and transactions...")
+    
+    is_valid = blockchain.validate_chain()
+    print(f"Blockchain valid: {is_valid}")
+    
+    update_demo_state(blockchain, manager.wallets, 13, "Chain Validated!",
+                     f"✓ Blockchain is {'VALID' if is_valid else 'INVALID'}!")
+    time.sleep(2)
+    
+    # ============================================================================
+    # Step 9: Display Chain
+    # ============================================================================
+    print_section("STEP 9: Blockchain Summary")
+    
+    blockchain.print_chain()
+    
+    update_demo_state(blockchain, manager.wallets, 14, "Blockchain Summary",
+                     f"Total blocks: {len(blockchain.chain)} | Total PYC minted: {sum(blockchain.get_block_reward(i) for i in range(len(blockchain.chain))) / 100000000:.2f}")
+    time.sleep(2)
+    
+    # ============================================================================
+    # Final Step
+    # ============================================================================
+    print_section("STEP 15: Demo Complete!")
+    
+    update_demo_state(blockchain, manager.wallets, 15, "Demo Complete!",
+                     f"Final balances → Alice: {alice.get_balance_btc(blockchain):.2f} PYC | "
+                     f"Bob: {bob.get_balance_btc(blockchain):.2f} PYC | "
+                     f"Miner: {miner.get_balance_btc(blockchain):.2f} PYC")
+    
+    print(f"\nFinal Balances:")
+    print(f"  Alice: {alice.get_balance_btc(blockchain):.2f} PYC")
+    print(f"  Bob: {bob.get_balance_btc(blockchain):.2f} PYC")
+    print(f"  Miner: {miner.get_balance_btc(blockchain):.2f} PYC")
+    
+    # Save files
+    blockchain.save_to_file('blockchain.json')
+    manager.save_to_file('wallets.json')
+    
+    print("\nFiles saved:")
+    print("  blockchain.json - Complete blockchain data")
+    print("  wallets.json - All wallet keys and addresses")
+    
+    DEMO_STATE['completed'] = True
+    
+    print_section("DEMO COMPLETE")
+    print("PyCoin successfully demonstrated cryptocurrency core concepts!")
+    print("\nKey Concepts Covered:")
+    print("  ✓ Public/Private Key Cryptography (ECDSA)")
+    print("  ✓ Address Generation")
+    print("  ✓ Transaction Creation and Signing")
+    print("  ✓ Transaction Verification")
+    print("  ✓ Block Structure and Merkle Trees")
+    print("  ✓ Proof-of-Work Mining")
+    print("  ✓ Blockchain Validation")
+    print("  ✓ UTXO Management")
+    print("\n🎮 Interactive mode is now available in the browser!")
+    print("   Use the UI controls to create wallets, send transactions, and mine blocks\n")
 
 
 def interactive_mode(blockchain: Blockchain, manager: WalletManager):
@@ -545,242 +778,12 @@ Starting server and opening visualization...
     
     print("\n✨ Browser opened! Watch the magic happen...\n")
     
-    # ============================================================================
-    # Step 1: Create Blockchain
-    # ============================================================================
-    print_section("STEP 1: Creating Blockchain")
-    
-    blockchain = Blockchain(difficulty=4, initial_reward=50_00000000)
-    
-    print("Blockchain initialized")
-    print(f"  Difficulty: {blockchain.difficulty}")
-    print(f"  Initial Block Reward: {blockchain.initial_reward / 100000000} PYC")
-    print(f"  Halving Interval: Every {blockchain.halving_interval:,} blocks")
-    print(f"  Max Supply: 21,000,000 PYC (just like Bitcoin!)\n")
-    
-    update_demo_state(blockchain, {}, 1, "Blockchain Initialized",
-                     f"Max supply: 21 million PYC with halving every {blockchain.halving_interval:,} blocks")
-    time.sleep(2)
+    # Run the demo sequence
+    run_demo_sequence()
     
     # ============================================================================
-    # Step 2: Create Wallets
+    # Keep server running for interactive mode
     # ============================================================================
-    print_section("STEP 2: Creating Wallets")
-    
-    manager = WalletManager()
-    alice = manager.create_wallet("Alice")
-    bob = manager.create_wallet("Bob")
-    miner = manager.create_wallet("Miner")
-    
-    narrative = (
-        f"Created 3 wallets:\n"
-        f"\n"
-        f"  Alice:\n"
-        f"    {alice.address}\n"
-        f"\n"
-        f"  Bob:\n"
-        f"    {bob.address}\n"
-        f"\n"
-        f"  Miner:\n"
-        f"    {miner.address}"
-    )
-    
-    update_demo_state(blockchain, manager.wallets, 2, "Creating Wallets", narrative)
-    time.sleep(2)
-    
-    # ============================================================================
-    # Step 3: Mine Genesis Block
-    # ============================================================================
-    print_section("STEP 3: Mining Genesis Block")
-    
-    update_demo_state(blockchain, manager.wallets, 3, "Mining Genesis Block...",
-                     "Miner is solving the proof-of-work puzzle (finding nonce)...")
-    
-    genesis = blockchain.create_genesis_block(miner.address)
-    reward = blockchain.get_block_reward(0)
-    
-    print(f"\nGenesis block mined!")
-    print(f"  Miner reward: {reward / 100000000} PYC")
-    
-    update_demo_state(blockchain, manager.wallets, 4, "Genesis Block Mined!",
-                     f"⛏️ Mining Reward: Miner receives {reward / 100000000} PYC\n  Address: {miner.address}")
-    
-    print("\nBalances after genesis:")
-    manager.list_wallets(blockchain)
-    time.sleep(3)
-    
-    # ============================================================================
-    # Step 4: Create Transactions
-    # ============================================================================
-    print_section("STEP 4: Creating Transactions")
-    
-    print("Transaction 1: Miner -> Alice (20 PYC)")
-    update_demo_state(blockchain, manager.wallets, 5, "Creating Transaction",
-                     f"📤 Miner sends 20 PYC to Alice\n  From: {miner.address}\n  To: {alice.address}")
-    
-    tx1 = miner.send(blockchain, alice.address, 20.0, fee_btc=0.001)
-    time.sleep(2)
-    
-    print("\nTransaction 2: Miner -> Bob (15 PYC)")
-    update_demo_state(blockchain, manager.wallets, 6, "Creating Transaction",
-                     f"📤 Miner sends 15 PYC to Bob\n  From: {miner.address}\n  To: {bob.address}")
-    
-    tx2 = miner.send(blockchain, bob.address, 15.0, fee_btc=0.001)
-    
-    if not tx1 or not tx2:
-        print("ERROR: Failed to create transactions")
-        sys.exit(1)
-    
-    print(f"\nPending transactions: {len(blockchain.pending_transactions)}")
-    time.sleep(2)
-    
-    # ============================================================================
-    # Step 5: Mine Block 1
-    # ============================================================================
-    print_section("STEP 5: Mining Block 1")
-    
-    print("Mining block with pending transactions...")
-    update_demo_state(blockchain, manager.wallets, 7, "Mining Block 1...",
-                     f"Mining block with {len(blockchain.pending_transactions)} pending transactions")
-    
-    block1 = blockchain.mine_pending_transactions(miner.address)
-    
-    if block1:
-        reward = blockchain.get_block_reward(1)
-        print(f"\nBlock 1 mined successfully!")
-        print(f"  Hash: {block1.hash}")
-        print(f"  Transactions: {len(block1.transactions)}")
-        print(f"  Miner reward: {reward / 100000000} PYC")
-        
-        update_demo_state(blockchain, manager.wallets, 8, "Block 1 Mined!",
-                         f"Block confirmed! Miner earned {reward / 100000000} PYC reward\n  Address: {miner.address}")
-    
-    print("\nBalances after Block 1:")
-    manager.list_wallets(blockchain)
-    time.sleep(3)
-    
-    # ============================================================================
-    # Step 6: More Transactions
-    # ============================================================================
-    print_section("STEP 6: More Transactions")
-    
-    print("Transaction 3: Alice -> Bob (5 PYC)")
-    update_demo_state(blockchain, manager.wallets, 9, "Creating Transaction",
-                     f"📤 Alice sends 5 PYC to Bob\n  From: {alice.address}\n  To: {bob.address}")
-    
-    tx3 = alice.send(blockchain, bob.address, 5.0, fee_btc=0.001)
-    time.sleep(2)
-    
-    print("\nTransaction 4: Bob -> Alice (10 PYC)")
-    update_demo_state(blockchain, manager.wallets, 10, "Creating Transaction",
-                     f"📤 Bob sends 10 PYC back to Alice\n  From: {bob.address}\n  To: {alice.address}")
-    
-    tx4 = bob.send(blockchain, alice.address, 10.0, fee_btc=0.001)
-    
-    if not tx3 or not tx4:
-        print("ERROR: Failed to create transactions")
-        sys.exit(1)
-    
-    print(f"\nPending transactions: {len(blockchain.pending_transactions)}")
-    time.sleep(2)
-    
-    # ============================================================================
-    # Step 7: Mine Block 2
-    # ============================================================================
-    print_section("STEP 7: Mining Block 2")
-    
-    print("Mining block with pending transactions...")
-    update_demo_state(blockchain, manager.wallets, 11, "Mining Block 2...",
-                     f"Mining block with {len(blockchain.pending_transactions)} pending transactions")
-    
-    block2 = blockchain.mine_pending_transactions(miner.address)
-    
-    if block2:
-        reward = blockchain.get_block_reward(2)
-        print(f"\nBlock 2 mined successfully!")
-        print(f"  Hash: {block2.hash}")
-        print(f"  Transactions: {len(block2.transactions)}")
-        
-        update_demo_state(blockchain, manager.wallets, 12, "Block 2 Mined!",
-                         f"Block confirmed! Miner earned {reward / 100000000} PYC reward\n  Address: {miner.address}")
-    
-    print("\nFinal Balances:")
-    manager.list_wallets(blockchain)
-    time.sleep(2)
-    
-    # ============================================================================
-    # Step 8: Validate Blockchain
-    # ============================================================================
-    print_section("STEP 8: Validating Blockchain")
-    
-    print("Running blockchain validation...")
-    update_demo_state(blockchain, manager.wallets, 13, "Validating Blockchain...",
-                     "Checking all blocks and transactions for integrity")
-    time.sleep(1)
-    
-    is_valid = blockchain.validate_chain()
-    
-    if is_valid:
-        print("✓ Blockchain is VALID!")
-        update_demo_state(blockchain, manager.wallets, 14, "✓ Blockchain Validated!",
-                         "All blocks and transactions verified successfully")
-    else:
-        print("✗ Blockchain is INVALID!")
-        update_demo_state(blockchain, manager.wallets, 14, "✗ Validation Failed",
-                         "Blockchain integrity check failed")
-        sys.exit(1)
-    
-    time.sleep(2)
-    
-    # ============================================================================
-    # Summary
-    # ============================================================================
-    print_section("SUMMARY")
-    
-    print(f"Blockchain Statistics:")
-    print(f"  Total Blocks: {len(blockchain.chain)}")
-    print(f"  Total Transactions: {sum(len(b.transactions) for b in blockchain.chain)}")
-    print(f"  UTXO Set Size: {len(blockchain.utxo)}")
-    print(f"  Difficulty: {blockchain.difficulty}")
-    print(f"\nWallet Balances:")
-    
-    for name in ["Alice", "Bob", "Miner"]:
-        wallet = manager.get_wallet(name)
-        balance = wallet.get_balance_btc(blockchain)
-        print(f"  {name}: {balance:.8f} PYC")
-    
-    total_minted = sum(blockchain.get_block_reward(i) for i in range(len(blockchain.chain)))
-    print(f"\nTotal Supply: {sum(w.get_balance_btc(blockchain) for w in manager.wallets.values()):.8f} PYC")
-    print(f"Expected Supply: {total_minted / 100000000:.8f} PYC")
-    print(f"Remaining Until Cap: {(21_000_000 - total_minted / 100000000):,.2f} PYC")
-    
-    update_demo_state(blockchain, manager.wallets, 15, "Demo Complete!",
-                     f"Final balances → Alice: {alice.get_balance_btc(blockchain):.2f} PYC | "
-                     f"Bob: {bob.get_balance_btc(blockchain):.2f} PYC | "
-                     f"Miner: {miner.get_balance_btc(blockchain):.2f} PYC")
-    
-    # Save files
-    blockchain.save_to_file('blockchain.json')
-    manager.save_to_file('wallets.json')
-    
-    print("\nFiles saved:")
-    print("  blockchain.json - Complete blockchain data")
-    print("  wallets.json - All wallet keys and addresses")
-    
-    DEMO_STATE['completed'] = True
-    
-    print_section("DEMO COMPLETE")
-    print("PyCoin successfully demonstrated cryptocurrency core concepts!")
-    print("\nKey Concepts Covered:")
-    print("  ✓ Public/Private Key Cryptography (ECDSA)")
-    print("  ✓ Address Generation")
-    print("  ✓ Transaction Creation and Signing")
-    print("  ✓ Transaction Verification")
-    print("  ✓ Block Structure and Merkle Trees")
-    print("  ✓ Proof-of-Work Mining")
-    print("  ✓ Blockchain Validation")
-    print("  ✓ UTXO Management")
-    print("\nFor more information, see README.md")
     print("\n✨ Browser visualization is still running!")
     print("📊 Check http://localhost:7777/visualize.html")
     print("\n🎮 Interactive mode is now available in the browser!")

@@ -1197,7 +1197,7 @@
         }
 
         function restartDemo() {
-            // Call backend to clear state, then reload page for fresh demo
+            // Call backend to clear state and restart demo
             fetch('/api/restart', {
                 method: 'POST',
                 headers: {
@@ -1208,14 +1208,28 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Reload page to restart demo completely
-                    window.location.reload();
+                    // Clear frontend state
+                    outputItems = [];
+                    animationState.currentIndex = 0;
+                    demoCompleted = false;
+                    walletMap = {};
+                    
+                    // Clear display
+                    const container = document.getElementById('terminal-output');
+                    if (container) {
+                        container.innerHTML = '';
+                    }
+                    
+                    // Lock sidebar again
+                    const sidebar = document.getElementById('sidebar');
+                    sidebar.classList.add('disabled');
+                    
+                    console.log('Demo restarted successfully. Waiting for new steps...');
                 }
             })
             .catch(error => {
                 console.error('Error restarting:', error);
-                // Fallback: reload page anyway
-                window.location.reload();
+                alert('Failed to restart demo. Please refresh the page.');
             });
         }
 
