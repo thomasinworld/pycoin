@@ -52,7 +52,7 @@ python demo.py
 ```
 
 **What happens:**
-- ✨ **Opens your browser automatically**
+- ✨ **Opens your browser automatically** (http://localhost:7777)
 - 🔴 **Shows "LIVE DEMO" with blinking indicator**
 - 📝 **Displays what's happening** ("Alice sends 5 PYC to Bob")
 - ⛏️ **Blocks appear as they're mined**

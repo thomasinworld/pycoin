@@ -15,7 +15,7 @@ python demo.py
 ## What You'll See
 
 ### 1. Browser Opens Automatically
-- URL: `http://localhost:8000/visualize.html`
+- URL: `http://localhost:7777/visualize.html`
 - Opens in your default browser
 - No manual steps needed!
 
@@ -140,12 +140,12 @@ The browser shows the final state. Files are saved:
 ## Troubleshooting
 
 ### Browser didn't open?
-Manually visit: `http://localhost:8000/visualize.html`
+Manually visit: `http://localhost:7777/visualize.html`
 
-### Port 8000 in use?
+### Port 7777 in use?
 Kill it first:
 ```bash
-lsof -ti:8000 | xargs kill
+lsof -ti:7777 | xargs kill
 ```
 
 ### Not updating?
@@ -188,7 +188,7 @@ That's it! Fresh blockchain every time.
 ```
 demo.py starts
     ↓
-Starts HTTP server on port 8000
+Starts HTTP server on port 7777
     ↓
 Opens browser to visualize.html
     ↓
@@ -224,7 +224,7 @@ $ python demo.py
 ║   🪙  PyCoin Demo - Live Blockchain Visualization 🪙  ║
 ╚═══════════════════════════════════════════════════════╝
 
-🌐 Opening browser at http://localhost:8000/visualize.html
+🌐 Opening browser at http://localhost:7777/visualize.html
 
 ✨ Browser opened! Watch the magic happen...
 

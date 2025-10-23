@@ -76,7 +76,7 @@ def update_demo_state(blockchain, wallets, step, message, narrative=''):
     print(f"{'='*80}")
 
 
-def run_server(port=8000):
+def run_server(port=7777):
     """Start HTTP server in background"""
     server = HTTPServer(('', port), DemoHTTPHandler)
     server.serve_forever()
@@ -110,8 +110,8 @@ Starting server and opening visualization...
     time.sleep(0.5)
     
     # Open browser
-    print("🌐 Opening browser at http://localhost:8000/visualize.html")
-    webbrowser.open('http://localhost:8000/visualize.html')
+    print("🌐 Opening browser at http://localhost:7777/visualize.html")
+    webbrowser.open('http://localhost:7777/visualize.html')
     time.sleep(2)
     
     print("\n✨ Browser opened! Watch the magic happen...\n")
@@ -333,7 +333,7 @@ Starting server and opening visualization...
     print("  ✓ UTXO Management")
     print("\nFor more information, see README.md")
     print("\n✨ Browser visualization is still running!")
-    print("📊 Check http://localhost:8000/visualize.html")
+    print("📊 Check http://localhost:7777/visualize.html")
     print("\nPress Ctrl+C to stop the server and exit\n")
     
     # Keep server running
