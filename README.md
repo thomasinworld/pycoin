@@ -6,6 +6,8 @@
 
 *Understanding blockchain technology by implementing it from scratch*
 
+![PyCoin Demo](demo.png)
+
 [Features](#-features) • [Quick Start](#-quick-start) • [How It Works](#-how-it-works) • [Architecture](#-architecture) • [Visualization](#-visualization)
 
 </div>
