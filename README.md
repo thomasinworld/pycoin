@@ -1,4 +1,4 @@
-# 🪙 PyCoin - Learn Cryptocurrency by Building It
+# PyCoin - Learn Cryptocurrency by Building It
 
 <div align="center">
 
@@ -8,7 +8,7 @@
 
 ![PyCoin Demo](demo.png)
 
-[Features](#-features) • [Quick Start](#-quick-start) • [How It Works](#-how-it-works) • [Architecture](#-architecture) • [Visualization](#-visualization)
+[Features](#-features) • [Quick Start](#-quick-start) • [How It Works](#-how-it-works) • [Architecture](#️-architecture) • [Visualization](#-visualization)
 
 </div>
 
