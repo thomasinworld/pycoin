@@ -43,7 +43,7 @@ class DemoHTTPHandler(SimpleHTTPRequestHandler):
                 'wallets': {
                     name: {
                         'address': w.address,
-                        'balance': w.get_balance_btc(DEMO_STATE['blockchain']) if DEMO_STATE['blockchain'] else 0
+                        'balance': w.get_balance_pyc(DEMO_STATE['blockchain']) if DEMO_STATE['blockchain'] else 0
                     }
                     for name, w in DEMO_STATE['wallets'].items()
                 },
@@ -83,7 +83,7 @@ class DemoHTTPHandler(SimpleHTTPRequestHandler):
             # Build wallet info
             wallet_info = []
             for name, wallet in DEMO_STATE['wallets'].items():
-                balance = wallet.get_balance_btc(DEMO_STATE['blockchain']) if DEMO_STATE['blockchain'] else 0
+                balance = wallet.get_balance_pyc(DEMO_STATE['blockchain']) if DEMO_STATE['blockchain'] else 0
                 wallet_info.append(f"{name}: {balance:.2f} pyc ({wallet.address})")
             
             # Add as a step
@@ -198,7 +198,7 @@ class DemoHTTPHandler(SimpleHTTPRequestHandler):
                 if not recipient:
                     raise ValueError(f"Recipient wallet '{recipient_name}' not found")
                 
-                tx = sender.send(DEMO_STATE['blockchain'], recipient.address, amount, fee_btc=fee)
+                tx = sender.send(DEMO_STATE['blockchain'], recipient.address, amount, fee_pyc=fee)
                 if not tx:
                     raise ValueError("Transaction failed (insufficient funds?)")
                 
@@ -435,7 +435,7 @@ def run_demo_sequence():
     update_demo_state(blockchain, manager.wallets, 5, "Creating Transaction",
                      f"📤 Miner sends 20 PYC to Alice\n  From: {miner.address}\n  To: {alice.address}")
     
-    tx1 = miner.send(blockchain, alice.address, 20.0, fee_btc=0.001)
+    tx1 = miner.send(blockchain, alice.address, 20.0, fee_pyc=0.001)
     if tx1:
         print("  Transaction created and added to mempool")
         print(f"  TX ID: {tx1.tx_id}\n")
@@ -445,7 +445,7 @@ def run_demo_sequence():
     update_demo_state(blockchain, manager.wallets, 6, "Creating Transaction",
                      f"📤 Miner sends 15 PYC to Bob\n  From: {miner.address}\n  To: {bob.address}")
     
-    tx2 = miner.send(blockchain, bob.address, 15.0, fee_btc=0.001)
+    tx2 = miner.send(blockchain, bob.address, 15.0, fee_pyc=0.001)
     if tx2:
         print("  Transaction created and added to mempool")
         print(f"  TX ID: {tx2.tx_id}\n")
@@ -486,7 +486,7 @@ def run_demo_sequence():
     update_demo_state(blockchain, manager.wallets, 9, "Creating Transaction",
                      f"📤 Alice sends 5 PYC to Bob\n  From: {alice.address}\n  To: {bob.address}")
     
-    tx3 = alice.send(blockchain, bob.address, 5.0, fee_btc=0.001)
+    tx3 = alice.send(blockchain, bob.address, 5.0, fee_pyc=0.001)
     if tx3:
         print("  Transaction created and added to mempool")
         print(f"  TX ID: {tx3.tx_id}\n")
@@ -548,14 +548,14 @@ def run_demo_sequence():
     print_section("STEP 15: Demo Complete!")
     
     update_demo_state(blockchain, manager.wallets, 15, "Demo Complete!",
-                     f"Final balances → Alice: {alice.get_balance_btc(blockchain):.2f} PYC | "
-                     f"Bob: {bob.get_balance_btc(blockchain):.2f} PYC | "
-                     f"Miner: {miner.get_balance_btc(blockchain):.2f} PYC")
+                     f"Final balances → Alice: {alice.get_balance_pyc(blockchain):.2f} PYC | "
+                     f"Bob: {bob.get_balance_pyc(blockchain):.2f} PYC | "
+                     f"Miner: {miner.get_balance_pyc(blockchain):.2f} PYC")
     
     print(f"\nFinal Balances:")
-    print(f"  Alice: {alice.get_balance_btc(blockchain):.2f} PYC")
-    print(f"  Bob: {bob.get_balance_btc(blockchain):.2f} PYC")
-    print(f"  Miner: {miner.get_balance_btc(blockchain):.2f} PYC")
+    print(f"  Alice: {alice.get_balance_pyc(blockchain):.2f} PYC")
+    print(f"  Bob: {bob.get_balance_pyc(blockchain):.2f} PYC")
+    print(f"  Miner: {miner.get_balance_pyc(blockchain):.2f} PYC")
     
     # Save files
     blockchain.save_to_file('blockchain.json')
@@ -612,7 +612,7 @@ def interactive_mode(blockchain: Blockchain, manager: WalletManager):
             elif command == 'wallets':
                 print("\nWallets:")
                 for name, wallet in manager.wallets.items():
-                    balance = wallet.get_balance_btc(blockchain)
+                    balance = wallet.get_balance_pyc(blockchain)
                     print(f"  {name}: {balance:.8f} PYC")
                     print(f"    Address: {wallet.address}\n")
                     
@@ -655,7 +655,7 @@ def interactive_mode(blockchain: Blockchain, manager: WalletManager):
                     print("Error: Invalid amount or fee")
                     continue
                 
-                tx = sender.send(blockchain, recipient.address, amount, fee_btc=fee)
+                tx = sender.send(blockchain, recipient.address, amount, fee_pyc=fee)
                 if tx:
                     print(f"\n✓ Transaction created!")
                     print(f"  TX ID: {tx.tx_id}\n")
@@ -712,7 +712,7 @@ def interactive_mode(blockchain: Blockchain, manager: WalletManager):
                 print(f"  UTXO Set Size: {len(blockchain.utxo)}")
                 
                 total_minted = sum(blockchain.get_block_reward(i) for i in range(len(blockchain.chain)))
-                total_supply = sum(w.get_balance_btc(blockchain) for w in manager.wallets.values())
+                total_supply = sum(w.get_balance_pyc(blockchain) for w in manager.wallets.values())
                 print(f"  Total Supply: {total_supply:.8f} PYC")
                 print(f"  Remaining Until Cap: {(21_000_000 - total_minted / 100000000):,.2f} PYC\n")
                 

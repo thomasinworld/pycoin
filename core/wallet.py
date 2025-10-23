@@ -70,7 +70,7 @@ class Wallet:
         """
         return blockchain.get_balance(self.address)
     
-    def get_balance_btc(self, blockchain: Blockchain) -> float:
+    def get_balance_pyc(self, blockchain: Blockchain) -> float:
         """
         Get wallet balance in PYC.
         
@@ -172,8 +172,8 @@ class Wallet:
         self,
         blockchain: Blockchain,
         recipient_address: str,
-        amount_btc: float,
-        fee_btc: float = 0.00001
+        amount_pyc: float,
+        fee_pyc: float = 0.00001
     ) -> Optional[Transaction]:
         """
         Create and broadcast a transaction (convenience method with PYC amounts).
@@ -181,14 +181,14 @@ class Wallet:
         Args:
             blockchain: Blockchain to use
             recipient_address: Recipient's address
-            amount_btc: Amount to send in PYC
-            fee_btc: Transaction fee in PYC
+            amount_pyc: Amount to send in PYC
+            fee_pyc: Transaction fee in PYC
             
         Returns:
             Transaction if successful, None otherwise
         """
-        amount_guidos = int(amount_btc * 100000000)
-        fee_guidos = int(fee_btc * 100000000)
+        amount_guidos = int(amount_pyc * 100000000)
+        fee_guidos = int(fee_pyc * 100000000)
         
         transaction = self.create_transaction(
             blockchain,
@@ -325,7 +325,7 @@ class WalletManager:
         for name, wallet in self.wallets.items():
             balance_str = ""
             if blockchain:
-                balance = wallet.get_balance_btc(blockchain)
+                balance = wallet.get_balance_pyc(blockchain)
                 balance_str = f" | Balance: {balance:.8f} PYC"
             
             print(f"{name}: {wallet.address}{balance_str}")

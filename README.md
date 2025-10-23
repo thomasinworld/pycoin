@@ -538,7 +538,7 @@ miner = Wallet()
 # Mine genesis block
 blockchain.create_genesis_block(miner.address)
 
-print(f"Miner balance: {miner.get_balance_btc(blockchain)} PYC")
+print(f"Miner balance: {miner.get_balance_pyc(blockchain)} PYC")
 # Output: Miner balance: 50.0 PYC
 ```
 
@@ -562,8 +562,8 @@ tx = miner.send(blockchain, alice.address, 10.0)
 blockchain.mine_pending_transactions(miner.address)
 
 # Check balances
-print(f"Alice: {alice.get_balance_btc(blockchain)} PYC")
-print(f"Miner: {miner.get_balance_btc(blockchain)} PYC")
+print(f"Alice: {alice.get_balance_pyc(blockchain)} PYC")
+print(f"Miner: {miner.get_balance_pyc(blockchain)} PYC")
 ```
 
 ### Example 4: Validate Blockchain
