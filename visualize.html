@@ -474,8 +474,9 @@
                 .then(data => {
                     // Add to output items if it's a new step
                     if (data.step > 0) {
-                        const lastItem = outputItems[outputItems.length - 1];
-                        const isNewStep = !lastItem || (lastItem.type === 'log' && lastItem.data.step !== data.step);
+                        // Find the last log entry (not block) to compare step numbers
+                        const lastLogItem = outputItems.filter(item => item.type === 'log').pop();
+                        const isNewStep = !lastLogItem || lastLogItem.data.step !== data.step;
                         
                         if (isNewStep) {
                             addOutputItem('log', {
