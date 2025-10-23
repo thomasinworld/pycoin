@@ -21,7 +21,7 @@ PyCoin is a **fully functional cryptocurrency** implementation in Python, design
 ### Why PyCoin?
 
 - ✅ **Complete Implementation** - All core blockchain concepts
-- ✅ **21 Million Coin Cap** - Bitcoin-style halving mechanism
+- ✅ **21,000 Coin Cap** - Bitcoin-style halving mechanism
 - ✅ **Real Cryptography** - ECDSA signatures, SHA-256 hashing
 - ✅ **Working Demo** - See it in action immediately
 - ✅ **Browser Visualization** - Beautiful blockchain explorer
@@ -98,7 +98,7 @@ Press `Ctrl+C` when done to stop the server.
 | **Digital Signatures** | ECDSA (secp256k1) for transaction signing |
 | **Merkle Trees** | Efficient transaction verification |
 | **UTXO Model** | Unspent transaction output tracking |
-| **21M Coin Cap** | Bitcoin-style supply limit with halving |
+| **21k Coin Cap** | Bitcoin-style supply limit with halving |
 
 ### Currency Details
 
@@ -106,9 +106,9 @@ Press `Ctrl+C` when done to stop the server.
 - **Ticker**: PYC
 - **Base Unit**: guido (named after Guido van Rossum, Python's creator)
 - **Conversion**: 1 PYC = 100,000,000 guidos
-- **Max Supply**: 21,000,000 PYC
+- **Max Supply**: 21,000 PYC
 - **Initial Reward**: 50 PYC per block
-- **Halving**: Every 210,000 blocks (same as Bitcoin)
+- **Halving**: Every 210 blocks
 
 ---
 
@@ -243,31 +243,31 @@ Block #2
 
 ### 5. Supply Cap & Halving
 
-**Concept**: Limit total supply like Bitcoin (21 million coins).
+**Concept**: Limit total supply (21,000 coins).
 
 ```python
 def get_block_reward(block_height):
-    halvings = block_height // 210000
+    halvings = block_height // 210
     return 50_00000000 >> halvings  # Halve reward
 ```
 
 **Halving Schedule**:
 ```
-Blocks 0 - 209,999:         50 PYC per block
-Blocks 210,000 - 419,999:   25 PYC per block
-Blocks 420,000 - 629,999:   12.5 PYC per block
-Blocks 630,000 - 839,999:   6.25 PYC per block
+Blocks 0 - 209:         50 PYC per block
+Blocks 210 - 419:       25 PYC per block
+Blocks 420 - 629:       12.5 PYC per block
+Blocks 630 - 839:       6.25 PYC per block
 ...
-After ~64 halvings:         0 PYC (all mined)
+After ~64 halvings:     0 PYC (all mined)
 ```
 
 **Total Supply**:
 ```
-210,000 × 50 = 10,500,000 PYC
-210,000 × 25 = 5,250,000 PYC
-210,000 × 12.5 = 2,625,000 PYC
+210 × 50 = 10,500 PYC
+210 × 25 = 5,250 PYC
+210 × 12.5 = 2,625 PYC
 ...
-Total ≈ 21,000,000 PYC
+Total ≈ 21,000 PYC
 ```
 
 ---
@@ -460,10 +460,10 @@ The `visualize.html` provides a beautiful, live blockchain visualization:
 ### Live Statistics (Sticky Header):
 - **Blocks** - Total blocks mined
 - **Transactions** - All transactions across all blocks
-- **Reward** - Current mining reward (halves every 210k blocks)
+- **Reward** - Current mining reward (halves every 210 blocks)
 - **Minted** - Total PYC in circulation (from actual coinbase rewards)
 - **Difficulty** - Current proof-of-work difficulty
-- **Remaining** - PYC left until 21M cap
+- **Remaining** - PYC left until 21k cap
 
 ### Terminal Output (Center Panel):
 - **Newest at Top** - Latest updates always visible, no scrolling needed

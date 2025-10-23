@@ -28,9 +28,9 @@ class Blockchain:
         self.initial_reward = initial_reward
         self.pending_transactions: List[Transaction] = []
         
-        # Bitcoin-style halving: reward halves every 210,000 blocks
-        # This caps total supply at 21 million PYC (just like Bitcoin!)
-        self.halving_interval = 210000
+        # Bitcoin-style halving: reward halves every 210 blocks
+        # This caps total supply at 21,000 PYC
+        self.halving_interval = 210
         
         # UTXO (Unspent Transaction Output) set
         # Maps "tx_id:output_index" -> TransactionOutput

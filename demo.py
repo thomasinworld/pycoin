@@ -371,10 +371,10 @@ def run_demo_sequence():
     print(f"  Difficulty: {blockchain.difficulty}")
     print(f"  Initial Block Reward: {blockchain.initial_reward / 100000000} PYC")
     print(f"  Halving Interval: Every {blockchain.halving_interval:,} blocks")
-    print(f"  Max Supply: 21,000,000 PYC (just like Bitcoin!)\n")
+    print(f"  Max Supply: 21,000 PYC\n")
     
     update_demo_state(blockchain, {}, 1, "Blockchain Initialized",
-                     f"Max supply: 21 million PYC with halving every {blockchain.halving_interval:,} blocks")
+                     f"Max supply: 21,000 PYC with halving every {blockchain.halving_interval:,} blocks")
     time.sleep(2)
     
     # ============================================================================

@@ -1049,7 +1049,7 @@
             
             const totalMintedPyc = totalMintedGuidos / 100000000;
             const currentRewardPyc = currentRewardGuidos / 100000000;
-            const remainingPyc = 21000000 - totalMintedPyc;
+            const remainingPyc = 21000 - totalMintedPyc;
 
             stats.innerHTML = `
                 <div class="header-stat">
@@ -1074,7 +1074,7 @@
                 </div>
                 <div class="header-stat">
                     <div class="header-stat-label">remaining</div>
-                    <div class="header-stat-value">${(remainingPyc / 1000000).toFixed(2)}m pyc</div>
+                    <div class="header-stat-value">${remainingPyc.toFixed(2)} pyc</div>
                 </div>
             `;
         }
@@ -1082,18 +1082,8 @@
         function calculateBlockReward(blockHeight) {
             // Ensure we're using the blockchain's actual initial reward
             const initialReward = blockchainData.initial_reward || 5000000000;
-            const halvingInterval = blockchainData.halving_interval || 210000;
+            const halvingInterval = blockchainData.halving_interval || 210;
             const halvings = Math.floor(blockHeight / halvingInterval);
-            
-            // Debug logging
-            console.log('Block reward calculation:', {
-                blockHeight,
-                initialReward,
-                halvingInterval,
-                halvings,
-                reward: initialReward >> halvings,
-                rewardPyc: (initialReward >> halvings) / 100000000
-            });
             
             if (halvings >= 64) return 0;
             
