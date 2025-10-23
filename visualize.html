@@ -1085,21 +1085,10 @@
             const halvingInterval = blockchainData.halving_interval || 210;
             const halvings = Math.floor(blockHeight / halvingInterval);
             
-            // Debug: log actual values
-            console.log('Reward calculation:', {
-                blockHeight,
-                initialReward,
-                initialRewardPyc: initialReward / 100000000,
-                halvingInterval,
-                halvings,
-                rewardGuidos: initialReward >> halvings,
-                rewardPyc: (initialReward >> halvings) / 100000000
-            });
-            
             if (halvings >= 64) return 0;
             
-            // Use right shift for halving (equivalent to dividing by 2^halvings)
-            return initialReward >> halvings;
+            // Use division by 2^halvings (can't use >> because JS bitwise ops are 32-bit only)
+            return Math.floor(initialReward / Math.pow(2, halvings));
         }
 
 
