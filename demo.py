@@ -54,8 +54,146 @@ class DemoHTTPHandler(SimpleHTTPRequestHandler):
             }
             
             self.wfile.write(json.dumps(response).encode())
+        elif self.path == '/api/validate_chain':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            is_valid = DEMO_STATE['blockchain'].validate_chain() if DEMO_STATE['blockchain'] else False
+            response = {'valid': is_valid}
+            self.wfile.write(json.dumps(response).encode())
         else:
             super().do_GET()
+    
+    def do_POST(self):
+        content_length = int(self.headers['Content-Length'])
+        post_data = self.rfile.read(content_length)
+        data = json.loads(post_data.decode('utf-8'))
+        
+        self.send_header('Content-type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        
+        if self.path == '/api/create_wallet':
+            try:
+                name = data.get('name', '').strip().title()
+                if not name:
+                    raise ValueError("Wallet name is required")
+                if name.lower() in [w.lower() for w in DEMO_STATE['wallets'].keys()]:
+                    raise ValueError(f"Wallet '{name}' already exists")
+                
+                wallet = DEMO_STATE['wallets'][name] = Wallet()
+                DEMO_STATE['step'] += 1
+                update_demo_state(
+                    DEMO_STATE['blockchain'],
+                    DEMO_STATE['wallets'],
+                    DEMO_STATE['step'],
+                    f"New Wallet Created: {name}",
+                    f"Address: {wallet.address}"
+                )
+                
+                self.send_response(200)
+                self.end_headers()
+                response = {'success': True, 'address': wallet.address}
+                self.wfile.write(json.dumps(response).encode())
+            except Exception as e:
+                self.send_response(400)
+                self.end_headers()
+                response = {'success': False, 'error': str(e)}
+                self.wfile.write(json.dumps(response).encode())
+                
+        elif self.path == '/api/send_transaction':
+            try:
+                sender_name = data.get('from')
+                recipient_name = data.get('to')
+                amount = float(data.get('amount', 0))
+                fee = float(data.get('fee', 0.001))
+                
+                if sender_name not in DEMO_STATE['wallets']:
+                    raise ValueError(f"Sender wallet '{sender_name}' not found")
+                if recipient_name not in DEMO_STATE['wallets']:
+                    raise ValueError(f"Recipient wallet '{recipient_name}' not found")
+                
+                sender = DEMO_STATE['wallets'][sender_name]
+                recipient = DEMO_STATE['wallets'][recipient_name]
+                
+                tx = sender.send(DEMO_STATE['blockchain'], recipient.address, amount, fee_btc=fee)
+                if not tx:
+                    raise ValueError("Transaction failed (insufficient funds?)")
+                
+                DEMO_STATE['step'] += 1
+                update_demo_state(
+                    DEMO_STATE['blockchain'],
+                    DEMO_STATE['wallets'],
+                    DEMO_STATE['step'],
+                    "New Transaction Created",
+                    f"📤 {sender_name} sends {amount} PYC to {recipient_name}\n"
+                    f"  From: {sender.address}\n"
+                    f"  To: {recipient.address}"
+                )
+                
+                self.send_response(200)
+                self.end_headers()
+                response = {'success': True, 'tx_id': tx.tx_id}
+                self.wfile.write(json.dumps(response).encode())
+            except Exception as e:
+                self.send_response(400)
+                self.end_headers()
+                response = {'success': False, 'error': str(e)}
+                self.wfile.write(json.dumps(response).encode())
+                
+        elif self.path == '/api/mine_block':
+            try:
+                miner_name = data.get('miner')
+                if miner_name not in DEMO_STATE['wallets']:
+                    raise ValueError(f"Miner wallet '{miner_name}' not found")
+                if not DEMO_STATE['blockchain'].pending_transactions:
+                    raise ValueError("No pending transactions to mine")
+                
+                miner = DEMO_STATE['wallets'][miner_name]
+                block_index = len(DEMO_STATE['blockchain'].chain)
+                
+                DEMO_STATE['step'] += 1
+                update_demo_state(
+                    DEMO_STATE['blockchain'],
+                    DEMO_STATE['wallets'],
+                    DEMO_STATE['step'],
+                    f"Mining Block {block_index}...",
+                    f"Mining block with {len(DEMO_STATE['blockchain'].pending_transactions)} pending transactions"
+                )
+                
+                block = DEMO_STATE['blockchain'].mine_pending_transactions(miner.address)
+                if not block:
+                    raise ValueError("Mining failed")
+                
+                reward = DEMO_STATE['blockchain'].get_block_reward(block.index)
+                
+                DEMO_STATE['step'] += 1
+                update_demo_state(
+                    DEMO_STATE['blockchain'],
+                    DEMO_STATE['wallets'],
+                    DEMO_STATE['step'],
+                    f"Block {block.index} Mined!",
+                    f"Block confirmed! {miner_name} earned {reward / 100000000} PYC reward\n"
+                    f"  Address: {miner.address}"
+                )
+                
+                self.send_response(200)
+                self.end_headers()
+                response = {
+                    'success': True,
+                    'block_index': block.index,
+                    'reward': reward / 100000000
+                }
+                self.wfile.write(json.dumps(response).encode())
+            except Exception as e:
+                self.send_response(400)
+                self.end_headers()
+                response = {'success': False, 'error': str(e)}
+                self.wfile.write(json.dumps(response).encode())
+        else:
+            self.send_response(404)
+            self.end_headers()
     
     def log_message(self, format, *args):
         pass  # Suppress logging

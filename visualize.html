@@ -349,6 +349,106 @@
             color: #ffd43b;
             margin-right: 5px;
         }
+
+        /* Interactive Controls Panel */
+        .interactive-panel {
+            background: #252526;
+            border: 2px solid #3776ab;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .panel-title {
+            color: #ffd43b;
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-transform: lowercase;
+        }
+
+        .control-section {
+            background: #1e1e1e;
+            border: 1px solid #3776ab;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .section-title {
+            color: #ffd43b;
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 12px;
+            text-transform: lowercase;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-label {
+            color: #9cdcfe;
+            font-size: 0.9em;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            background: #1e1e1e;
+            border: 1px solid #3776ab;
+            color: #ffd43b;
+            padding: 8px 12px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.95em;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #ffd43b;
+        }
+
+        .action-button {
+            background: #3776ab;
+            color: #ffd43b;
+            border: 2px solid #ffd43b;
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            font-family: 'Consolas', monospace;
+            font-weight: bold;
+            text-transform: lowercase;
+            transition: all 0.2s;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+
+        .action-button:hover {
+            background: #ffd43b;
+            color: #3776ab;
+            transform: scale(1.05);
+        }
+
+        .action-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .status-message-box {
+            background: rgba(255, 212, 59, 0.1);
+            border-left: 3px solid #ffd43b;
+            padding: 10px;
+            margin-top: 10px;
+            color: #9cdcfe;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -375,6 +475,78 @@
         <div id="terminal-output-section" style="display: none;">
             <div class="terminal-output" id="terminal-output"></div>
         </div>
+
+        <div id="interactive-panel" class="interactive-panel">
+            <div class="panel-title">🎮 interactive mode</div>
+            
+            <!-- Create Wallet Section -->
+            <div class="control-section">
+                <div class="section-title">💳 create new wallet</div>
+                <div class="form-group">
+                    <label class="form-label">wallet name:</label>
+                    <input type="text" id="new-wallet-name" class="form-input" placeholder="Enter wallet name...">
+                </div>
+                <button class="action-button" onclick="createWallet()">
+                    ➕ create wallet
+                </button>
+                <div id="wallet-status" class="status-message-box"></div>
+            </div>
+
+            <!-- Send Transaction Section -->
+            <div class="control-section">
+                <div class="section-title">💸 send transaction</div>
+                <div class="form-group">
+                    <label class="form-label">from wallet:</label>
+                    <select id="tx-from" class="form-select">
+                        <option value="">-- select sender --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">to wallet:</label>
+                    <select id="tx-to" class="form-select">
+                        <option value="">-- select recipient --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">amount (pyc):</label>
+                    <input type="number" id="tx-amount" class="form-input" placeholder="0.00" step="0.01" min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">fee (pyc):</label>
+                    <input type="number" id="tx-fee" class="form-input" value="0.001" step="0.001" min="0.001">
+                </div>
+                <button class="action-button" onclick="sendTransaction()">
+                    📤 send pyc
+                </button>
+                <div id="tx-status" class="status-message-box"></div>
+            </div>
+
+            <!-- Actions Section -->
+            <div class="control-section">
+                <div class="section-title">⚙️ blockchain actions</div>
+                <div class="form-group">
+                    <label class="form-label">miner wallet:</label>
+                    <select id="miner-select" class="form-select">
+                        <option value="">-- select miner --</option>
+                    </select>
+                </div>
+                <div class="button-grid">
+                    <button class="action-button" onclick="mineBlock()">
+                        ⛏ mine block
+                    </button>
+                    <button class="action-button" onclick="validateBlockchain()">
+                        ✓ validate chain
+                    </button>
+                    <button class="action-button" onclick="showWallets()">
+                        👛 show wallets
+                    </button>
+                    <button class="action-button" onclick="showBlockchainInfo()">
+                        📊 blockchain info
+                    </button>
+                </div>
+                <div id="action-status" class="status-message-box"></div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -388,6 +560,7 @@
         let liveUpdateInterval = null;
         let outputItems = []; // Stores {type: 'log'|'block', data: ...}
         let walletMap = {}; // Maps addresses to names
+        let demoCompleted = false;
 
         document.getElementById('file-input').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -513,11 +686,174 @@
                         }
                     }
 
-                    if (data.completed && liveUpdateInterval) {
-                        clearInterval(liveUpdateInterval);
+                    if (data.completed && !demoCompleted) {
+                        demoCompleted = true;
+                        showInteractivePanel();
                     }
                 })
                 .catch(error => console.error('Error:', error));
+        }
+
+        function showInteractivePanel() {
+            document.getElementById('interactive-panel').style.display = 'block';
+            updateWalletDropdowns();
+        }
+
+        function updateWalletDropdowns() {
+            const fromSelect = document.getElementById('tx-from');
+            const toSelect = document.getElementById('tx-to');
+            const minerSelect = document.getElementById('miner-select');
+            
+            // Clear existing options except first
+            fromSelect.innerHTML = '<option value="">-- select sender --</option>';
+            toSelect.innerHTML = '<option value="">-- select recipient --</option>';
+            minerSelect.innerHTML = '<option value="">-- select miner --</option>';
+            
+            // Add wallet options
+            Object.keys(walletMap).forEach(address => {
+                const name = walletMap[address];
+                fromSelect.innerHTML += `<option value="${name}">${name}</option>`;
+                toSelect.innerHTML += `<option value="${name}">${name}</option>`;
+                minerSelect.innerHTML += `<option value="${name}">${name}</option>`;
+            });
+        }
+
+        function showStatus(elementId, message, isError = false) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.style.display = 'block';
+            el.style.borderLeftColor = isError ? '#ff6b6b' : '#ffd43b';
+            setTimeout(() => {
+                el.style.display = 'none';
+            }, 5000);
+        }
+
+        async function createWallet() {
+            const name = document.getElementById('new-wallet-name').value.trim();
+            if (!name) {
+                showStatus('wallet-status', 'Error: Please enter a wallet name', true);
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/create_wallet', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: name })
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('wallet-status', `✓ Wallet '${name}' created! Address: ${result.address}`);
+                    document.getElementById('new-wallet-name').value = '';
+                    // Refresh wallet map
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    showStatus('wallet-status', `Error: ${result.error}`, true);
+                }
+            } catch (error) {
+                showStatus('wallet-status', `Error: ${error.message}`, true);
+            }
+        }
+
+        async function sendTransaction() {
+            const from = document.getElementById('tx-from').value;
+            const to = document.getElementById('tx-to').value;
+            const amount = parseFloat(document.getElementById('tx-amount').value);
+            const fee = parseFloat(document.getElementById('tx-fee').value);
+
+            if (!from || !to) {
+                showStatus('tx-status', 'Error: Please select sender and recipient', true);
+                return;
+            }
+            if (!amount || amount <= 0) {
+                showStatus('tx-status', 'Error: Please enter a valid amount', true);
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/send_transaction', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ from, to, amount, fee })
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('tx-status', `✓ Transaction created! ${from} → ${to}: ${amount} PYC`);
+                    document.getElementById('tx-amount').value = '';
+                } else {
+                    showStatus('tx-status', `Error: ${result.error}`, true);
+                }
+            } catch (error) {
+                showStatus('tx-status', `Error: ${error.message}`, true);
+            }
+        }
+
+        async function mineBlock() {
+            const miner = document.getElementById('miner-select').value;
+            if (!miner) {
+                showStatus('action-status', 'Error: Please select a miner wallet', true);
+                return;
+            }
+
+            showStatus('action-status', '⛏ Mining block...');
+            
+            try {
+                const response = await fetch('/api/mine_block', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ miner })
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('action-status', `✓ Block ${result.block_index} mined! Reward: ${result.reward} PYC`);
+                } else {
+                    showStatus('action-status', `Error: ${result.error}`, true);
+                }
+            } catch (error) {
+                showStatus('action-status', `Error: ${error.message}`, true);
+            }
+        }
+
+        async function validateBlockchain() {
+            showStatus('action-status', '⚙️ Validating blockchain...');
+            
+            try {
+                const response = await fetch('/api/validate_chain');
+                const result = await response.json();
+                
+                if (result.valid) {
+                    showStatus('action-status', '✓ Blockchain is VALID!');
+                } else {
+                    showStatus('action-status', '✗ Blockchain is INVALID!', true);
+                }
+            } catch (error) {
+                showStatus('action-status', `Error: ${error.message}`, true);
+            }
+        }
+
+        function showWallets() {
+            let message = 'Wallets:\n';
+            fetch('/api/demo_state')
+                .then(response => response.json())
+                .then(data => {
+                    for (const [name, wallet] of Object.entries(data.wallets)) {
+                        message += `\n${name}: ${wallet.balance.toFixed(8)} PYC`;
+                    }
+                    showStatus('action-status', message);
+                });
+        }
+
+        function showBlockchainInfo() {
+            fetch('/api/demo_state')
+                .then(response => response.json())
+                .then(data => {
+                    const bc = data.blockchain;
+                    const message = `Blocks: ${bc.chain.length} | Pending TXs: ${bc.pending_transactions.length} | Difficulty: ${bc.difficulty}`;
+                    showStatus('action-status', message);
+                });
         }
 
         function loadStaticBlockchain() {
