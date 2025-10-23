@@ -1016,9 +1016,6 @@
             const totalBlocks = chain.length;
             const totalTransactions = chain.reduce((sum, block) => sum + block.transactions.length, 0);
             
-            // Calculate current block reward for next block to be mined
-            const currentReward = calculateBlockReward(totalBlocks);
-            
             // Calculate total minted by summing all coinbase rewards (first tx of each block)
             const totalMintedGuidos = chain.reduce((sum, block) => {
                 if (block.transactions.length > 0) {
@@ -1030,7 +1027,11 @@
                 return sum;
             }, 0);
             
+            // Calculate current block reward for next block to be mined
+            const currentRewardGuidos = calculateBlockReward(totalBlocks);
+            
             const totalMintedPyc = totalMintedGuidos / 100000000;
+            const currentRewardPyc = currentRewardGuidos / 100000000;
             const remainingPyc = 21000000 - totalMintedPyc;
 
             stats.innerHTML = `
@@ -1044,7 +1045,7 @@
                 </div>
                 <div class="header-stat">
                     <div class="header-stat-label">reward</div>
-                    <div class="header-stat-value">${(currentReward / 100000000).toFixed(2)} pyc</div>
+                    <div class="header-stat-value">${currentRewardPyc.toFixed(2)} pyc</div>
                 </div>
                 <div class="header-stat">
                     <div class="header-stat-label">minted</div>
@@ -1062,10 +1063,24 @@
         }
 
         function calculateBlockReward(blockHeight) {
+            // Ensure we're using the blockchain's actual initial reward
             const initialReward = blockchainData.initial_reward || 5000000000;
             const halvingInterval = blockchainData.halving_interval || 210000;
             const halvings = Math.floor(blockHeight / halvingInterval);
+            
+            // Debug logging
+            console.log('Block reward calculation:', {
+                blockHeight,
+                initialReward,
+                halvingInterval,
+                halvings,
+                reward: initialReward >> halvings,
+                rewardPyc: (initialReward >> halvings) / 100000000
+            });
+            
             if (halvings >= 64) return 0;
+            
+            // Use right shift for halving (equivalent to dividing by 2^halvings)
             return initialReward >> halvings;
         }
 

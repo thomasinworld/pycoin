@@ -61,6 +61,17 @@ class DemoHTTPHandler(SimpleHTTPRequestHandler):
             self.end_headers()
             
             is_valid = DEMO_STATE['blockchain'].validate_chain() if DEMO_STATE['blockchain'] else False
+            
+            # Add validation as a step
+            DEMO_STATE['step'] += 1
+            update_demo_state(
+                DEMO_STATE['blockchain'],
+                DEMO_STATE['wallets'],
+                DEMO_STATE['step'],
+                "Blockchain Validated",
+                f"blockchain is {'VALID ✓' if is_valid else 'INVALID ✗'}"
+            )
+            
             response = {'valid': is_valid}
             self.wfile.write(json.dumps(response).encode())
         else:
