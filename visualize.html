@@ -15,21 +15,42 @@
             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
             background: #1e1e1e;
             color: #d4d4d4;
-            padding: 15px;
+            padding: 0;
             font-size: 13px;
+            margin: 0;
         }
 
         .container {
-            max-width: 1600px;
-            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .terminal-section {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .sidebar {
+            width: 400px;
+            background: #252526;
+            border-left: 2px solid #3776ab;
+            overflow-y: auto;
+            padding: 20px;
         }
 
         /* Python colors: #3776ab (blue) and #ffd43b (yellow) */
         header {
             background: linear-gradient(135deg, #3776ab 0%, #306998 100%);
-            border: 2px solid #ffd43b;
+            border-bottom: 2px solid #ffd43b;
             padding: 12px 20px;
-            margin-bottom: 15px;
             font-family: 'Consolas', monospace;
             display: flex;
             align-items: center;
@@ -355,11 +376,11 @@
 
         /* Interactive Controls Panel */
         .interactive-panel {
-            background: #252526;
-            border: 2px solid #3776ab;
-            padding: 20px;
-            margin-top: 20px;
             display: none;
+        }
+
+        .interactive-panel.active {
+            display: block;
         }
 
         .panel-title {
@@ -466,20 +487,24 @@
             <div class="header-stats" id="header-stats"></div>
         </header>
 
-        <div class="file-input-wrapper" id="file-input-section">
-            <h2 style="color: #ffd43b; margin-bottom: 15px; font-size: 1.3em; text-transform: lowercase;">load blockchain data</h2>
-            <p style="color: #858585; margin-bottom: 15px;">select blockchain.json or run: <code style="background: #1e1e1e; padding: 4px 8px; color: #ffd43b;">python demo.py</code></p>
-            <input type="file" id="file-input" accept=".json">
-            <button class="load-button" onclick="document.getElementById('file-input').click()">
-                [ load file ]
-            </button>
-        </div>
+        <div class="main-content">
+            <div class="terminal-section">
+                <div class="file-input-wrapper" id="file-input-section">
+                    <h2 style="color: #ffd43b; margin-bottom: 15px; font-size: 1.3em; text-transform: lowercase;">load blockchain data</h2>
+                    <p style="color: #858585; margin-bottom: 15px;">select blockchain.json or run: <code style="background: #1e1e1e; padding: 4px 8px; color: #ffd43b;">python demo.py</code></p>
+                    <input type="file" id="file-input" accept=".json">
+                    <button class="load-button" onclick="document.getElementById('file-input').click()">
+                        [ load file ]
+                    </button>
+                </div>
 
-        <div id="terminal-output-section" style="display: none;">
-            <div class="terminal-output" id="terminal-output"></div>
-        </div>
+                <div id="terminal-output-section" style="display: none;">
+                    <div class="terminal-output" id="terminal-output"></div>
+                </div>
+            </div>
 
-        <div id="interactive-panel" class="interactive-panel">
+            <div class="sidebar" id="sidebar" style="display: none;">
+                <div id="interactive-panel" class="interactive-panel">
             <div class="panel-title">🎮 interactive mode</div>
             
             <!-- Create Wallet Section -->
@@ -548,6 +573,8 @@
                     </button>
                 </div>
                 <div id="action-status" class="status-message-box"></div>
+            </div>
+                </div>
             </div>
         </div>
     </div>
@@ -619,10 +646,11 @@
             const container = document.getElementById('terminal-output');
             if (!container) return;
 
-            // Render all items up to current animation index
+            // Render all items up to current animation index (reversed: newest at top)
             const itemsToShow = outputItems.slice(0, animationState.currentIndex);
+            const reversedItems = [...itemsToShow].reverse();
             
-            container.innerHTML = itemsToShow.map((item, index) => {
+            container.innerHTML = reversedItems.map((item, index) => {
                 if (item.type === 'log') {
                     return `
                         <div class="output-item appear" data-index="${index}">
@@ -641,8 +669,8 @@
                 }
             }).join('');
 
-            // Auto-scroll to bottom
-            container.scrollTop = container.scrollHeight;
+            // Auto-scroll to top to see newest items
+            container.scrollTop = 0;
         }
 
         function updateFromLiveDemo() {
@@ -709,7 +737,8 @@
         }
 
         function showInteractivePanel() {
-            document.getElementById('interactive-panel').style.display = 'block';
+            document.getElementById('sidebar').style.display = 'block';
+            document.getElementById('interactive-panel').classList.add('active');
             updateWalletDropdowns();
         }
 
