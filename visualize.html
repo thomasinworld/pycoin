@@ -38,11 +38,34 @@
             gap: 15px;
         }
 
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
         h1 {
             color: #ffd43b;
             font-size: 1.5em;
             font-weight: bold;
             margin: 0;
+        }
+
+        .replay-button {
+            background: #3776ab;
+            color: #ffd43b;
+            border: 1px solid #ffd43b;
+            padding: 8px 16px;
+            font-size: 0.9em;
+            cursor: pointer;
+            font-family: 'Consolas', monospace;
+            text-transform: lowercase;
+            transition: all 0.2s;
+        }
+
+        .replay-button:hover {
+            background: #ffd43b;
+            color: #3776ab;
         }
 
         .header-stats {
@@ -71,43 +94,49 @@
             font-weight: bold;
         }
 
-        /* Terminal Log Section */
-        .terminal-log {
+        /* Unified Terminal Output */
+        .terminal-output {
             background: #1e1e1e;
             border: 2px solid #3776ab;
-            padding: 15px;
-            margin-bottom: 15px;
-            max-height: 300px;
-            overflow-y: auto;
+            padding: 20px;
             font-family: 'Consolas', monospace;
+            min-height: 400px;
         }
 
-        .terminal-log::-webkit-scrollbar {
-            width: 8px;
+        .terminal-output::-webkit-scrollbar {
+            width: 10px;
         }
 
-        .terminal-log::-webkit-scrollbar-track {
+        .terminal-output::-webkit-scrollbar-track {
             background: #252526;
         }
 
-        .terminal-log::-webkit-scrollbar-thumb {
+        .terminal-output::-webkit-scrollbar-thumb {
             background: #3776ab;
             border-radius: 4px;
         }
 
-        .terminal-log::-webkit-scrollbar-thumb:hover {
+        .terminal-output::-webkit-scrollbar-thumb:hover {
             background: #ffd43b;
         }
 
-        .log-entry {
-            padding: 6px 0;
-            color: #d4d4d4;
-            font-size: 0.95em;
-            border-bottom: 1px solid rgba(55, 118, 171, 0.2);
+        .output-item {
+            margin-bottom: 20px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.4s ease-out;
         }
 
-        .log-entry:last-child {
-            border-bottom: none;
+        .output-item.appear {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .log-entry {
+            padding: 8px 0;
+            color: #d4d4d4;
+            font-size: 1em;
+            line-height: 1.6;
         }
 
         .log-step {
@@ -117,66 +146,21 @@
 
         .log-narrative {
             color: #9cdcfe;
-            font-style: italic;
-            margin-top: 3px;
+            margin-top: 4px;
+            padding-left: 20px;
         }
 
-        /* Compact Controls */
-        .controls {
-            background: #252526;
-            border: 1px solid #3776ab;
-            padding: 10px 15px;
-            margin-bottom: 15px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-            font-size: 0.9em;
-        }
 
-        .control-button {
-            background: #3776ab;
-            color: #ffd43b;
-            border: 1px solid #ffd43b;
-            padding: 6px 14px;
-            font-size: 0.85em;
-            cursor: pointer;
-            font-family: 'Consolas', monospace;
-            text-transform: lowercase;
-            transition: all 0.2s;
-        }
-
-        .control-button:hover {
-            background: #ffd43b;
-            color: #3776ab;
-        }
-
-        .progress-info {
-            color: #ffd43b;
-            font-size: 0.9em;
-            margin-left: auto;
-        }
-
-        /* Vertical Blockchain */
-        .blockchain-container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            padding: 15px 0;
-            background: #1e1e1e;
-        }
-
-        .block {
+        /* Inline Block Display */
+        .block-inline {
             background: #252526;
             border: 2px solid #3776ab;
-            padding: 12px;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.4s ease-out;
+            padding: 15px;
+            margin: 15px 0;
             position: relative;
         }
 
-        .block::before {
+        .block-inline::before {
             content: '';
             position: absolute;
             top: 0;
@@ -184,11 +168,6 @@
             right: 0;
             height: 3px;
             background: linear-gradient(90deg, #3776ab, #ffd43b);
-        }
-
-        .block.appear {
-            opacity: 1;
-            transform: translateY(0);
         }
 
         .block-header {
@@ -325,18 +304,6 @@
             color: #1e1e1e;
         }
 
-        .chain-arrow {
-            text-align: center;
-            color: #ffd43b;
-            font-size: 1.5em;
-            opacity: 0;
-            transition: opacity 0.3s;
-            padding: 5px 0;
-        }
-
-        .chain-arrow.visible {
-            opacity: 1;
-        }
 
         .file-input-wrapper {
             text-align: center;
@@ -376,7 +343,12 @@
 <body>
     <div class="container">
         <header id="main-header">
-            <h1><span class="prompt">>>></span> pycoin blockchain</h1>
+            <div class="header-left">
+                <h1><span class="prompt">>>></span> pycoin blockchain</h1>
+                <button class="replay-button" id="replay-btn" onclick="replayBlockchain()" style="display: none;">
+                    ⟲ replay
+                </button>
+            </div>
             <div class="header-stats" id="header-stats"></div>
         </header>
 
@@ -389,42 +361,21 @@
             </button>
         </div>
 
-        <div id="terminal-section" style="display: none;">
-            <div class="terminal-log" id="terminal-log"></div>
-        </div>
-
-        <div id="controls-section" style="display: none;">
-            <div class="controls">
-                <button class="control-button" id="replay-btn" onclick="replayBlockchain()">
-                    ⟲ replay
-                </button>
-                <button class="control-button" id="play-pause-btn" onclick="togglePlayPause()">
-                    ⏸ pause
-                </button>
-                <button class="control-button" id="skip-btn" onclick="skipToEnd()">
-                    ⏭ skip
-                </button>
-                <div class="progress-info" id="progress-info">block 0/0</div>
-            </div>
-        </div>
-
-        <div id="blockchain-section" style="display: none;">
-            <div class="blockchain-container" id="blockchain"></div>
+        <div id="terminal-output-section" style="display: none;">
+            <div class="terminal-output" id="terminal-output"></div>
         </div>
     </div>
 
     <script>
         let blockchainData = null;
         let animationState = {
-            currentBlock: 0,
-            isPlaying: true,
-            speed: 1,
+            currentIndex: 0,
             intervalId: null,
-            baseDelay: 2000
+            baseDelay: 1500
         };
         let isLiveMode = false;
         let liveUpdateInterval = null;
-        let terminalLog = [];
+        let outputItems = []; // Stores {type: 'log'|'block', data: ...}
 
         document.getElementById('file-input').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -456,68 +407,88 @@
         }
 
         function startLiveUpdates() {
-            document.getElementById('terminal-section').style.display = 'block';
+            document.getElementById('terminal-output-section').style.display = 'block';
+            document.getElementById('replay-btn').style.display = 'block';
             liveUpdateInterval = setInterval(updateFromLiveDemo, 1000);
             updateFromLiveDemo();
         }
 
-        function addTerminalLog(step, message, narrative = '') {
-            const logEntry = { step, message, narrative, timestamp: Date.now() };
-            terminalLog.push(logEntry);
-            updateTerminalDisplay();
+        function buildOutputTimeline() {
+            // Build a timeline of log entries and blocks interleaved
+            outputItems = [];
+            
+            // For live demo, we'll add items as steps come in
+            // For now, just prepare the structure
         }
 
-        function updateTerminalDisplay() {
-            const terminalEl = document.getElementById('terminal-log');
-            if (!terminalEl) return;
+        function addOutputItem(type, data) {
+            outputItems.push({ type, data, id: Date.now() + Math.random() });
+            renderOutput();
+        }
 
-            terminalEl.innerHTML = terminalLog.map(entry => `
-                <div class="log-entry">
-                    <div class="log-step">>>> step ${entry.step}: ${entry.message}</div>
-                    ${entry.narrative ? `<div class="log-narrative">    ${entry.narrative}</div>` : ''}
-                </div>
-            `).join('');
+        function renderOutput() {
+            const container = document.getElementById('terminal-output');
+            if (!container) return;
+
+            // Render all items up to current animation index
+            const itemsToShow = outputItems.slice(0, animationState.currentIndex);
+            
+            container.innerHTML = itemsToShow.map((item, index) => {
+                if (item.type === 'log') {
+                    return `
+                        <div class="output-item appear" data-index="${index}">
+                            <div class="log-entry">
+                                <div class="log-step">>>> step ${item.data.step}: ${item.data.message}</div>
+                                ${item.data.narrative ? `<div class="log-narrative">${item.data.narrative}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                } else if (item.type === 'block') {
+                    return `
+                        <div class="output-item appear" data-index="${index}">
+                            ${generateBlockHTML(item.data)}
+                        </div>
+                    `;
+                }
+            }).join('');
 
             // Auto-scroll to bottom
-            terminalEl.scrollTop = terminalEl.scrollHeight;
+            container.scrollTop = container.scrollHeight;
         }
 
         function updateFromLiveDemo() {
             fetch('/api/demo_state')
                 .then(response => response.json())
                 .then(data => {
-                    // Add to terminal log if it's a new step
-                    if (data.step > 0 && (terminalLog.length === 0 || terminalLog[terminalLog.length - 1].step !== data.step)) {
-                        addTerminalLog(data.step, data.message.toLowerCase(), data.narrative.toLowerCase());
+                    // Add to output items if it's a new step
+                    if (data.step > 0) {
+                        const lastItem = outputItems[outputItems.length - 1];
+                        const isNewStep = !lastItem || lastItem.data.step !== data.step;
+                        
+                        if (isNewStep) {
+                            addOutputItem('log', {
+                                step: data.step,
+                                message: data.message.toLowerCase(),
+                                narrative: data.narrative ? data.narrative.toLowerCase() : ''
+                            });
+                            animationState.currentIndex = outputItems.length;
+                        }
                     }
 
                     if (data.blockchain) {
                         blockchainData = data.blockchain;
-                        
-                        document.getElementById('controls-section').style.display = 'block';
-                        document.getElementById('blockchain-section').style.display = 'block';
-                        
                         displayStats();
                         
-                        const currentBlockCount = blockchainData.chain.length;
-                        if (currentBlockCount > animationState.currentBlock) {
-                            displayBlocks();
-                            
-                            for (let i = animationState.currentBlock; i < currentBlockCount; i++) {
-                                setTimeout(() => {
-                                    const blockElement = document.querySelector(`[data-block-index="${i}"]`);
-                                    if (blockElement) {
-                                        blockElement.classList.add('appear');
-                                        const arrowElement = document.querySelector(`[data-arrow-after="${i}"]`);
-                                        if (arrowElement) {
-                                            setTimeout(() => arrowElement.classList.add('visible'), 200);
-                                        }
-                                    }
-                                }, i * 300);
+                        // Check if new blocks need to be added
+                        const blockCount = blockchainData.chain.length;
+                        const blockItemsCount = outputItems.filter(item => item.type === 'block').length;
+                        
+                        if (blockCount > blockItemsCount) {
+                            // Add missing blocks
+                            for (let i = blockItemsCount; i < blockCount; i++) {
+                                addOutputItem('block', blockchainData.chain[i]);
+                                animationState.currentIndex = outputItems.length;
                             }
-                            
-                            animationState.currentBlock = currentBlockCount;
-                            updateProgress();
                         }
                     }
 
@@ -544,18 +515,51 @@
             if (!blockchainData) return;
 
             document.getElementById('file-input-section').style.display = 'none';
-            document.getElementById('terminal-section').style.display = 'block';
-            document.getElementById('controls-section').style.display = 'block';
-            document.getElementById('blockchain-section').style.display = 'block';
-
-            // Add initial log for static file load
-            if (!isLiveMode && terminalLog.length === 0) {
-                addTerminalLog(1, 'blockchain loaded from file', 'displaying blockchain data');
-            }
+            document.getElementById('terminal-output-section').style.display = 'block';
+            document.getElementById('replay-btn').style.display = 'block';
 
             displayStats();
-            displayBlocks();
+            buildStaticTimeline();
             startAnimation();
+        }
+
+        function buildStaticTimeline() {
+            // Build timeline for static JSON file
+            outputItems = [];
+            
+            // Add initial log
+            outputItems.push({
+                type: 'log',
+                data: { step: 1, message: 'blockchain loaded from file', narrative: 'displaying blockchain data' }
+            });
+
+            // Interleave blocks with placeholder logs
+            blockchainData.chain.forEach((block, index) => {
+                if (index === 0) {
+                    outputItems.push({
+                        type: 'log',
+                        data: { step: 2, message: 'genesis block found', narrative: 'the first block of the blockchain' }
+                    });
+                }
+                
+                outputItems.push({
+                    type: 'block',
+                    data: block
+                });
+                
+                if (index < blockchainData.chain.length - 1) {
+                    outputItems.push({
+                        type: 'log',
+                        data: { 
+                            step: 3 + index, 
+                            message: `block ${index + 1} found`, 
+                            narrative: `contains ${blockchainData.chain[index + 1].transactions.length} transactions` 
+                        }
+                    });
+                }
+            });
+
+            animationState.currentIndex = 0;
         }
 
         function displayStats() {
@@ -602,37 +606,14 @@
             return initialReward >> halvings;
         }
 
-        function displayBlocks() {
-            const container = document.getElementById('blockchain');
-            
-            blockchainData.chain.forEach((block, index) => {
-                const blockId = `block-${block.index}`;
-                if (!document.getElementById(blockId)) {
-                    const blockDiv = document.createElement('div');
-                    blockDiv.id = blockId;
-                    blockDiv.className = 'block';
-                    blockDiv.setAttribute('data-block-index', index);
-                    
-                    blockDiv.innerHTML = generateBlockHTML(block);
-                    container.appendChild(blockDiv);
-
-                    if (index < blockchainData.chain.length - 1) {
-                    const arrow = document.createElement('div');
-                    arrow.className = 'chain-arrow';
-                    arrow.setAttribute('data-arrow-after', index);
-                    arrow.innerHTML = '↓';
-                    container.appendChild(arrow);
-                    }
-                }
-            });
-        }
 
         function generateBlockHTML(block) {
             return `
-                <div class="block-header">
-                    <div class="block-index">block #${block.index}</div>
-                    <div class="block-hash">${block.hash}</div>
-                </div>
+                <div class="block-inline">
+                    <div class="block-header">
+                        <div class="block-index">block #${block.index}</div>
+                        <div class="block-hash">${block.hash}</div>
+                    </div>
                 
                 <div class="block-details">
                     <div class="detail-line">
@@ -657,9 +638,10 @@
                     </div>
                 </div>
 
-                <div class="transactions-section">
-                    <div class="transactions-title">transactions</div>
-                    ${block.transactions.map(tx => generateTransactionHTML(tx)).join('')}
+                    <div class="transactions-section">
+                        <div class="transactions-title">transactions</div>
+                        ${block.transactions.map(tx => generateTransactionHTML(tx)).join('')}
+                    </div>
                 </div>
             `;
         }
@@ -697,88 +679,37 @@
         }
 
         function startAnimation() {
-            animationState.currentBlock = 0;
-            animationState.isPlaying = true;
-            updateProgress();
-            animateNextBlock();
+            animationState.currentIndex = 0;
+            animateNextItem();
         }
 
-        function animateNextBlock() {
-            if (!animationState.isPlaying) return;
-
-            if (animationState.currentBlock < blockchainData.chain.length) {
-                const blockIndex = animationState.currentBlock;
-                const blockElement = document.querySelector(`[data-block-index="${blockIndex}"]`);
-                
-                if (blockElement) {
-                    setTimeout(() => {
-                        blockElement.classList.add('appear');
-                        const arrowElement = document.querySelector(`[data-arrow-after="${blockIndex}"]`);
-                        if (arrowElement) {
-                            setTimeout(() => arrowElement.classList.add('visible'), 200);
-                        }
-                        
-                        animationState.currentBlock++;
-                        updateProgress();
-                        animationState.intervalId = setTimeout(animateNextBlock, animationState.baseDelay / animationState.speed);
-                    }, 100);
-                }
-            } else {
-                updatePlayPauseButton(false);
+        function animateNextItem() {
+            if (animationState.currentIndex < outputItems.length) {
+                animationState.currentIndex++;
+                renderOutput();
+                animationState.intervalId = setTimeout(animateNextItem, animationState.baseDelay);
             }
-        }
-
-        function updateProgress() {
-            const total = blockchainData.chain.length;
-            const current = animationState.currentBlock;
-            
-            const progressInfo = document.getElementById('progress-info');
-            if (progressInfo) {
-                progressInfo.textContent = `block ${current}/${total}`;
-            }
-        }
-
-        function togglePlayPause() {
-            animationState.isPlaying = !animationState.isPlaying;
-            updatePlayPauseButton(animationState.isPlaying);
-            
-            if (animationState.isPlaying) {
-                animateNextBlock();
-            } else {
-                clearTimeout(animationState.intervalId);
-            }
-        }
-
-        function updatePlayPauseButton(isPlaying) {
-            document.getElementById('play-pause-btn').innerHTML = isPlaying ? '⏸ pause' : '▶ play';
         }
 
         function replayBlockchain() {
-            document.querySelectorAll('.block').forEach(block => block.classList.remove('appear'));
-            document.querySelectorAll('.chain-arrow').forEach(arrow => arrow.classList.remove('visible'));
-            
-            // Clear terminal log
-            terminalLog = [];
-            updateTerminalDisplay();
-            
             clearTimeout(animationState.intervalId);
-            animationState.currentBlock = 0;
-            animationState.isPlaying = true;
-            updatePlayPauseButton(true);
-            updateProgress();
             
-            setTimeout(animateNextBlock, 500);
-        }
-
-        function skipToEnd() {
-            clearTimeout(animationState.intervalId);
-            animationState.currentBlock = blockchainData.chain.length;
-            animationState.isPlaying = false;
-            updatePlayPauseButton(false);
-            updateProgress();
+            if (isLiveMode) {
+                // For live mode, rebuild from current data
+                outputItems = [];
+                animationState.currentIndex = 0;
+            } else {
+                // For static mode, just reset animation
+                animationState.currentIndex = 0;
+            }
             
-            document.querySelectorAll('.block').forEach(block => block.classList.add('appear'));
-            document.querySelectorAll('.chain-arrow').forEach(arrow => arrow.classList.add('visible'));
+            // Clear display
+            const container = document.getElementById('terminal-output');
+            if (container) {
+                container.innerHTML = '';
+            }
+            
+            setTimeout(() => startAnimation(), 500);
         }
 
 
