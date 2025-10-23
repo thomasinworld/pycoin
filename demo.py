@@ -126,10 +126,18 @@ Starting server and opening visualization...
     bob = manager.create_wallet("Bob")
     miner = manager.create_wallet("Miner")
     
-    narrative = (f"Created 3 wallets:\n"
-                f"    Alice: {alice.address}\n"
-                f"    Bob: {bob.address}\n"
-                f"    Miner: {miner.address}")
+    narrative = (
+        f"Created 3 wallets:\n"
+        f"\n"
+        f"  Alice:\n"
+        f"    {alice.address}\n"
+        f"\n"
+        f"  Bob:\n"
+        f"    {bob.address}\n"
+        f"\n"
+        f"  Miner:\n"
+        f"    {miner.address}"
+    )
     
     update_demo_state(None, manager.wallets, 1, "Creating Wallets", narrative)
     time.sleep(2)
@@ -162,7 +170,7 @@ Starting server and opening visualization...
     print(f"  Miner reward: {reward / 100000000} PYC")
     
     update_demo_state(blockchain, manager.wallets, 4, "Genesis Block Mined!",
-                     f"⛏️ Mining Reward: Miner {miner.address[:16]}... receives {reward / 100000000} PYC")
+                     f"⛏️ Mining Reward: Miner receives {reward / 100000000} PYC\n  Address: {miner.address}")
     
     print("\nBalances after genesis:")
     manager.list_wallets(blockchain)
@@ -175,14 +183,14 @@ Starting server and opening visualization...
     
     print("Transaction 1: Miner -> Alice (20 PYC)")
     update_demo_state(blockchain, manager.wallets, 5, "Creating Transaction",
-                     f"📤 Miner {miner.address[:16]}... sends 20 PYC to Alice {alice.address[:16]}...")
+                     f"📤 Miner sends 20 PYC to Alice\n  From: {miner.address}\n  To: {alice.address}")
     
     tx1 = miner.send(blockchain, alice.address, 20.0, fee_btc=0.001)
     time.sleep(2)
     
     print("\nTransaction 2: Miner -> Bob (15 PYC)")
     update_demo_state(blockchain, manager.wallets, 6, "Creating Transaction",
-                     f"📤 Miner {miner.address[:16]}... sends 15 PYC to Bob {bob.address[:16]}...")
+                     f"📤 Miner sends 15 PYC to Bob\n  From: {miner.address}\n  To: {bob.address}")
     
     tx2 = miner.send(blockchain, bob.address, 15.0, fee_btc=0.001)
     
@@ -212,7 +220,7 @@ Starting server and opening visualization...
         print(f"  Miner reward: {reward / 100000000} PYC")
         
         update_demo_state(blockchain, manager.wallets, 8, "Block 1 Mined!",
-                         f"Block confirmed! Miner {miner.address[:16]}... earned {reward / 100000000} PYC reward")
+                         f"Block confirmed! Miner earned {reward / 100000000} PYC reward\n  Address: {miner.address}")
     
     print("\nBalances after Block 1:")
     manager.list_wallets(blockchain)
@@ -225,14 +233,14 @@ Starting server and opening visualization...
     
     print("Transaction 3: Alice -> Bob (5 PYC)")
     update_demo_state(blockchain, manager.wallets, 9, "Creating Transaction",
-                     f"📤 Alice {alice.address[:16]}... sends 5 PYC to Bob {bob.address[:16]}...")
+                     f"📤 Alice sends 5 PYC to Bob\n  From: {alice.address}\n  To: {bob.address}")
     
     tx3 = alice.send(blockchain, bob.address, 5.0, fee_btc=0.001)
     time.sleep(2)
     
     print("\nTransaction 4: Bob -> Alice (10 PYC)")
     update_demo_state(blockchain, manager.wallets, 10, "Creating Transaction",
-                     f"📤 Bob {bob.address[:16]}... sends 10 PYC back to Alice {alice.address[:16]}...")
+                     f"📤 Bob sends 10 PYC back to Alice\n  From: {bob.address}\n  To: {alice.address}")
     
     tx4 = bob.send(blockchain, alice.address, 10.0, fee_btc=0.001)
     
@@ -261,7 +269,7 @@ Starting server and opening visualization...
         print(f"  Transactions: {len(block2.transactions)}")
         
         update_demo_state(blockchain, manager.wallets, 12, "Block 2 Mined!",
-                         f"Block confirmed! Miner {miner.address[:16]}... earned {reward / 100000000} PYC reward")
+                         f"Block confirmed! Miner earned {reward / 100000000} PYC reward\n  Address: {miner.address}")
     
     print("\nFinal Balances:")
     manager.list_wallets(blockchain)
