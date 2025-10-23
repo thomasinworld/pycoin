@@ -661,9 +661,17 @@ Starting server and opening visualization...
     print("\nFor more information, see README.md")
     print("\n✨ Browser visualization is still running!")
     print("📊 Check http://localhost:7777/visualize.html")
+    print("\n🎮 Interactive mode is now available in the browser!")
+    print("   Use the UI controls to create wallets, send transactions, and mine blocks")
+    print("\nPress Ctrl+C to stop the server and exit\n")
     
-    # Interactive mode
-    interactive_mode(blockchain, manager)
+    # Keep server running
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("\n\n👋 Demo stopped. Thanks for watching!")
+        sys.exit(0)
 
 
 if __name__ == "__main__":
