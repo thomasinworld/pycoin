@@ -60,23 +60,65 @@
 
         .header-stat-label {
             color: #d4d4d4;
-            font-size: 0.7em;
+            font-size: 0.85em;
             text-transform: lowercase;
+            letter-spacing: 0.5px;
         }
 
         .header-stat-value {
             color: #ffd43b;
-            font-size: 1.1em;
+            font-size: 1.6em;
             font-weight: bold;
         }
 
-        .status-message {
-            background: rgba(255, 212, 59, 0.1);
-            border-left: 3px solid #ffd43b;
-            padding: 8px 15px;
+        /* Terminal Log Section */
+        .terminal-log {
+            background: #1e1e1e;
+            border: 2px solid #3776ab;
+            padding: 15px;
             margin-bottom: 15px;
-            font-size: 0.9em;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Consolas', monospace;
+        }
+
+        .terminal-log::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .terminal-log::-webkit-scrollbar-track {
+            background: #252526;
+        }
+
+        .terminal-log::-webkit-scrollbar-thumb {
+            background: #3776ab;
+            border-radius: 4px;
+        }
+
+        .terminal-log::-webkit-scrollbar-thumb:hover {
+            background: #ffd43b;
+        }
+
+        .log-entry {
+            padding: 6px 0;
+            color: #d4d4d4;
+            font-size: 0.95em;
+            border-bottom: 1px solid rgba(55, 118, 171, 0.2);
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-step {
             color: #ffd43b;
+            font-weight: bold;
+        }
+
+        .log-narrative {
+            color: #9cdcfe;
+            font-style: italic;
+            margin-top: 3px;
         }
 
         /* Compact Controls */
@@ -156,60 +198,66 @@
         }
 
         .block-index {
-            font-size: 1.4em;
+            font-size: 1.8em;
             font-weight: bold;
             color: #ffd43b;
-            margin-bottom: 4px;
+            margin-bottom: 8px;
             text-transform: lowercase;
         }
 
         .block-hash {
-            font-size: 0.7em;
+            font-size: 0.85em;
             color: #858585;
             word-break: break-all;
             font-family: 'Consolas', monospace;
+            line-height: 1.6;
         }
 
         .block-details {
-            font-size: 0.75em;
-            margin-bottom: 10px;
+            font-size: 0.95em;
+            margin-bottom: 12px;
+            line-height: 1.8;
         }
 
         .detail-line {
             display: flex;
             justify-content: space-between;
-            margin: 3px 0;
-            padding: 2px 0;
+            margin: 6px 0;
+            padding: 4px 0;
         }
 
         .detail-label {
             color: #858585;
+            font-size: 1em;
         }
 
         .detail-value {
             color: #ffd43b;
             font-weight: bold;
+            font-size: 1em;
+            word-break: break-all;
         }
 
         .transactions-section {
-            font-size: 0.8em;
+            font-size: 0.95em;
         }
 
         .transactions-title {
             color: #ffd43b;
             font-weight: bold;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             border-bottom: 1px solid #3776ab;
-            padding-bottom: 4px;
+            padding-bottom: 6px;
             text-transform: lowercase;
+            font-size: 1.1em;
         }
 
         .transaction {
             background: #1e1e1e;
             border-left: 2px solid #3776ab;
-            padding: 6px 8px;
-            margin-bottom: 6px;
-            font-size: 0.85em;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            font-size: 0.95em;
         }
 
         .transaction.coinbase {
@@ -219,13 +267,16 @@
         .tx-narrative {
             color: #ffd43b;
             font-weight: bold;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
+            font-size: 1.05em;
         }
 
         .tx-id {
             color: #858585;
-            font-size: 0.8em;
-            margin-bottom: 4px;
+            font-size: 0.85em;
+            margin-bottom: 6px;
+            word-break: break-all;
+            line-height: 1.5;
         }
 
         .tx-flow {
@@ -237,7 +288,7 @@
 
         .tx-from, .tx-to {
             flex: 1;
-            font-size: 0.85em;
+            font-size: 0.9em;
         }
 
         .tx-arrow {
@@ -248,11 +299,14 @@
         .address-short {
             color: #d4d4d4;
             font-family: 'Consolas', monospace;
+            word-break: break-all;
+            line-height: 1.5;
         }
 
         .amount {
             color: #ffd43b;
             font-weight: bold;
+            font-size: 1.05em;
         }
 
         .badge {
@@ -335,8 +389,8 @@
             </button>
         </div>
 
-        <div id="status-section" style="display: none;">
-            <div class="status-message" id="status-message"></div>
+        <div id="terminal-section" style="display: none;">
+            <div class="terminal-log" id="terminal-log"></div>
         </div>
 
         <div id="controls-section" style="display: none;">
@@ -370,6 +424,7 @@
         };
         let isLiveMode = false;
         let liveUpdateInterval = null;
+        let terminalLog = [];
 
         document.getElementById('file-input').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -401,21 +456,39 @@
         }
 
         function startLiveUpdates() {
-            document.getElementById('status-section').style.display = 'block';
+            document.getElementById('terminal-section').style.display = 'block';
             liveUpdateInterval = setInterval(updateFromLiveDemo, 1000);
             updateFromLiveDemo();
+        }
+
+        function addTerminalLog(step, message, narrative = '') {
+            const logEntry = { step, message, narrative, timestamp: Date.now() };
+            terminalLog.push(logEntry);
+            updateTerminalDisplay();
+        }
+
+        function updateTerminalDisplay() {
+            const terminalEl = document.getElementById('terminal-log');
+            if (!terminalEl) return;
+
+            terminalEl.innerHTML = terminalLog.map(entry => `
+                <div class="log-entry">
+                    <div class="log-step">>>> step ${entry.step}: ${entry.message}</div>
+                    ${entry.narrative ? `<div class="log-narrative">    ${entry.narrative}</div>` : ''}
+                </div>
+            `).join('');
+
+            // Auto-scroll to bottom
+            terminalEl.scrollTop = terminalEl.scrollHeight;
         }
 
         function updateFromLiveDemo() {
             fetch('/api/demo_state')
                 .then(response => response.json())
                 .then(data => {
-                    const statusEl = document.getElementById('status-message');
-                    if (statusEl) {
-                        statusEl.textContent = `step ${data.step}: ${data.message.toLowerCase()}`;
-                        if (data.narrative) {
-                            statusEl.textContent += ` | ${data.narrative.toLowerCase()}`;
-                        }
+                    // Add to terminal log if it's a new step
+                    if (data.step > 0 && (terminalLog.length === 0 || terminalLog[terminalLog.length - 1].step !== data.step)) {
+                        addTerminalLog(data.step, data.message.toLowerCase(), data.narrative.toLowerCase());
                     }
 
                     if (data.blockchain) {
@@ -471,8 +544,14 @@
             if (!blockchainData) return;
 
             document.getElementById('file-input-section').style.display = 'none';
+            document.getElementById('terminal-section').style.display = 'block';
             document.getElementById('controls-section').style.display = 'block';
             document.getElementById('blockchain-section').style.display = 'block';
+
+            // Add initial log for static file load
+            if (!isLiveMode && terminalLog.length === 0) {
+                addTerminalLog(1, 'blockchain loaded from file', 'displaying blockchain data');
+            }
 
             displayStats();
             displayBlocks();
@@ -552,21 +631,29 @@
             return `
                 <div class="block-header">
                     <div class="block-index">block #${block.index}</div>
-                    <div class="block-hash">${block.hash.substring(0, 24)}...</div>
+                    <div class="block-hash">${block.hash}</div>
                 </div>
                 
                 <div class="block-details">
                     <div class="detail-line">
-                        <span class="detail-label">Nonce:</span>
+                        <span class="detail-label">nonce:</span>
                         <span class="detail-value">${block.nonce.toLocaleString()}</span>
                     </div>
                     <div class="detail-line">
-                        <span class="detail-label">TXs:</span>
+                        <span class="detail-label">timestamp:</span>
+                        <span class="detail-value">${new Date(block.timestamp * 1000).toLocaleString()}</span>
+                    </div>
+                    <div class="detail-line">
+                        <span class="detail-label">transactions:</span>
                         <span class="detail-value">${block.transactions.length}</span>
                     </div>
                     <div class="detail-line">
-                        <span class="detail-label">Prev:</span>
-                        <span class="detail-value">${block.previous_hash.substring(0, 8)}...</span>
+                        <span class="detail-label">previous hash:</span>
+                        <span class="detail-value">${block.previous_hash}</span>
+                    </div>
+                    <div class="detail-line">
+                        <span class="detail-label">merkle root:</span>
+                        <span class="detail-value">${block.merkle_root}</span>
                     </div>
                 </div>
 
@@ -594,12 +681,14 @@
             return `
                 <div class="transaction ${isCoinbase ? 'coinbase' : ''}">
                     ${narrative ? `<div class="tx-narrative">${narrative}</div>` : ''}
-                    <div class="tx-id">tx: ${tx.tx_id.substring(0, 16)}...<span class="badge ${isCoinbase ? 'coinbase' : ''}">${isCoinbase ? 'coinbase' : 'tx'}</span></div>
+                    <div class="tx-id">tx id: ${tx.tx_id}<span class="badge ${isCoinbase ? 'coinbase' : ''}">${isCoinbase ? 'coinbase' : 'tx'}</span></div>
                     <div class="tx-flow">
                         <div class="tx-from">
                             ${tx.outputs.map(out => `
-                                <div><span class="address-short">${out.recipient_address.substring(0, 8)}...</span></div>
-                                <div class="amount">${(out.amount / 100000000).toFixed(4)} pyc</div>
+                                <div style="margin: 8px 0;">
+                                    <div class="address-short">recipient: ${out.recipient_address}</div>
+                                    <div class="amount">${(out.amount / 100000000).toFixed(8)} pyc</div>
+                                </div>
                             `).join('')}
                         </div>
                     </div>
@@ -667,6 +756,10 @@
         function replayBlockchain() {
             document.querySelectorAll('.block').forEach(block => block.classList.remove('appear'));
             document.querySelectorAll('.chain-arrow').forEach(arrow => arrow.classList.remove('visible'));
+            
+            // Clear terminal log
+            terminalLog = [];
+            updateTerminalDisplay();
             
             clearTimeout(animationState.intervalId);
             animationState.currentBlock = 0;
