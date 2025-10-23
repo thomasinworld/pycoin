@@ -731,17 +731,114 @@
             `;
         }
 
-        // Auto-load blockchain.json if it's in the same directory (for local testing)
-        fetch('blockchain.json')
-            .then(response => response.json())
-            .then(data => {
-                blockchainData = data;
-                displayBlockchain();
-            })
-            .catch(() => {
-                // File not found, show file input
-                console.log('blockchain.json not found in directory. Please upload manually.');
-            });
+        let isLiveMode = false;
+        let liveUpdateInterval = null;
+
+        // Check if running in live demo mode
+        function checkLiveMode() {
+            fetch('/api/demo_state')
+                .then(response => response.json())
+                .then(data => {
+                    isLiveMode = true;
+                    startLiveUpdates();
+                    document.getElementById('file-input-section').style.display = 'none';
+                    console.log('Live demo mode activated!');
+                })
+                .catch(() => {
+                    // Not in live mode, try loading static file
+                    loadStaticBlockchain();
+                });
+        }
+
+        function startLiveUpdates() {
+            // Show live indicator
+            const header = document.querySelector('header');
+            const liveIndicator = document.createElement('div');
+            liveIndicator.innerHTML = `
+                <div style="display: inline-flex; align-items: center; gap: 8px; background: #28a745; color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; margin-top: 15px;">
+                    <div style="width: 10px; height: 10px; background: white; border-radius: 50%; animation: blink 1s infinite;"></div>
+                    LIVE DEMO
+                </div>
+                <div id="live-step" style="margin-top: 15px; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 10px; color: white;">
+                    <div style="font-size: 1.3em; font-weight: bold;" id="live-message">Initializing...</div>
+                    <div style="font-size: 1.1em; margin-top: 5px; font-style: italic;" id="live-narrative"></div>
+                </div>
+            `;
+            header.appendChild(liveIndicator);
+
+            // Poll for updates
+            liveUpdateInterval = setInterval(updateFromLiveDemo, 1000);
+            updateFromLiveDemo(); // Initial update
+        }
+
+        function updateFromLiveDemo() {
+            fetch('/api/demo_state')
+                .then(response => response.json())
+                .then(data => {
+                    // Update live status
+                    document.getElementById('live-message').textContent = `Step ${data.step}: ${data.message}`;
+                    document.getElementById('live-narrative').textContent = data.narrative || '';
+
+                    // Update blockchain display
+                    if (data.blockchain) {
+                        blockchainData = data.blockchain;
+                        
+                        document.getElementById('controls-section').style.display = 'block';
+                        document.getElementById('stats-section').style.display = 'block';
+                        document.getElementById('blockchain-section').style.display = 'block';
+                        
+                        displayStats();
+                        
+                        // Add new blocks as they appear
+                        const currentBlockCount = blockchainData.chain.length;
+                        if (currentBlockCount > animationState.currentBlock) {
+                            // New block appeared!
+                            displayBlocks();
+                            
+                            // Animate the new block
+                            for (let i = animationState.currentBlock; i < currentBlockCount; i++) {
+                                setTimeout(() => {
+                                    const blockElement = document.querySelector(`[data-block-index="${i}"]`);
+                                    if (blockElement) {
+                                        blockElement.classList.add('visible');
+                                        const arrowElement = document.querySelector(`[data-arrow-after="${i}"]`);
+                                        if (arrowElement) {
+                                            setTimeout(() => arrowElement.classList.add('visible'), 300);
+                                        }
+                                    }
+                                }, i * 500);
+                            }
+                            
+                            animationState.currentBlock = currentBlockCount;
+                            updateProgress();
+                        }
+                    }
+
+                    // Stop polling if demo is complete
+                    if (data.completed && liveUpdateInterval) {
+                        clearInterval(liveUpdateInterval);
+                        console.log('Demo complete!');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching live state:', error);
+                });
+        }
+
+        function loadStaticBlockchain() {
+            fetch('blockchain.json')
+                .then(response => response.json())
+                .then(data => {
+                    blockchainData = data;
+                    displayBlockchain();
+                })
+                .catch(() => {
+                    console.log('blockchain.json not found. Please upload manually.');
+                });
+        }
+
+        // Start by checking for live mode
+        checkLiveMode();
     </script>
 </body>
 </html>

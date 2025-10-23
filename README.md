@@ -44,45 +44,30 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Option 1: Live Demo (Recommended!) 🎬
-
-**Watch the blockchain being built in real-time!**
+### Run the Demo (Super Easy!) 🎬
 
 ```bash
-# Run the live demo - it opens your browser automatically!
-python live_demo.py
-```
-
-This will:
-- ✨ Open your browser automatically
-- 🔴 Show "LIVE" indicator
-- 📝 Display transaction narratives ("Alice sends 5 PYC to Bob")
-- ⛏️ Show blocks being mined in real-time
-- 💰 Update wallet balances live
-- ⛓️ Build the blockchain step-by-step
-
-**Perfect for:** Learning, presentations, demos
-
-### Option 2: Standard Demo
-
-```bash
-# Run the complete demo
+# That's it! Just one command:
 python demo.py
 ```
 
-Then visualize:
-```bash
-# Open the visualizer (loads blockchain.json)
-open visualize.html  # macOS
-# or just double-click visualize.html
-```
+**What happens:**
+- ✨ **Opens your browser automatically**
+- 🔴 **Shows "LIVE DEMO" with blinking indicator**
+- 📝 **Displays what's happening** ("Alice sends 5 PYC to Bob")
+- ⛏️ **Blocks appear as they're mined**
+- 💰 **Wallet balances update in real-time**
+- ⛓️ **Watch the blockchain grow step-by-step**
 
-The static visualizer shows:
-- All blocks in the chain
-- Transaction details with narratives
-- Animated playback with controls
-- Mining statistics
-- Supply metrics
+**Features:**
+- Transaction narratives (easy to understand)
+- Live wallet balances
+- Real-time block mining
+- Step-by-step progress
+- Automatic visualization
+- No manual file loading needed!
+
+Press `Ctrl+C` when done to stop the server.
 
 ---
 
