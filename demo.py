@@ -89,6 +89,175 @@ def print_section(title: str) -> None:
     print(f"{'='*80}\n")
 
 
+def interactive_mode(blockchain: Blockchain, manager: WalletManager):
+    """Interactive mode for users to play with the blockchain."""
+    step_counter = 16
+    
+    print_section("INTERACTIVE MODE")
+    print("Now you can interact with the blockchain!")
+    print("Type 'help' to see available commands\n")
+    
+    while True:
+        try:
+            command = input("pyc>>> ").strip().lower()
+            
+            if not command:
+                continue
+                
+            if command == 'help':
+                print("\nAvailable Commands:")
+                print("  help              - Show this help message")
+                print("  wallets           - List all wallets and balances")
+                print("  create <name>     - Create a new wallet")
+                print("  send              - Send PYC between wallets (interactive)")
+                print("  mine              - Mine pending transactions")
+                print("  blockchain        - Show blockchain details")
+                print("  validate          - Validate blockchain")
+                print("  quit / exit       - Exit interactive mode")
+                print()
+                
+            elif command == 'wallets':
+                print("\nWallets:")
+                for name, wallet in manager.wallets.items():
+                    balance = wallet.get_balance_btc(blockchain)
+                    print(f"  {name}: {balance:.8f} PYC")
+                    print(f"    Address: {wallet.address}\n")
+                    
+            elif command.startswith('create '):
+                name = command[7:].strip().title()
+                if not name:
+                    print("Error: Please provide a wallet name")
+                    continue
+                if name.lower() in [w.lower() for w in manager.wallets.keys()]:
+                    print(f"Error: Wallet '{name}' already exists")
+                    continue
+                wallet = manager.create_wallet(name)
+                print(f"\n✓ Created wallet '{name}'")
+                print(f"  Address: {wallet.address}\n")
+                
+                step_counter += 1
+                update_demo_state(blockchain, manager.wallets, step_counter, 
+                                f"New Wallet Created: {name}",
+                                f"Address: {wallet.address}")
+                
+            elif command == 'send':
+                print("\n--- Send PYC ---")
+                sender_name = input("From wallet: ").strip().title()
+                recipient_name = input("To wallet: ").strip().title()
+                
+                if sender_name not in manager.wallets:
+                    print(f"Error: Wallet '{sender_name}' not found")
+                    continue
+                if recipient_name not in manager.wallets:
+                    print(f"Error: Wallet '{recipient_name}' not found")
+                    continue
+                    
+                sender = manager.get_wallet(sender_name)
+                recipient = manager.get_wallet(recipient_name)
+                
+                try:
+                    amount = float(input("Amount (PYC): ").strip())
+                    fee = float(input("Fee (PYC) [default 0.001]: ").strip() or "0.001")
+                except ValueError:
+                    print("Error: Invalid amount or fee")
+                    continue
+                
+                tx = sender.send(blockchain, recipient.address, amount, fee_btc=fee)
+                if tx:
+                    print(f"\n✓ Transaction created!")
+                    print(f"  TX ID: {tx.tx_id}\n")
+                    
+                    step_counter += 1
+                    update_demo_state(blockchain, manager.wallets, step_counter,
+                                    "New Transaction Created",
+                                    f"📤 {sender_name} sends {amount} PYC to {recipient_name}\n"
+                                    f"  From: {sender.address}\n"
+                                    f"  To: {recipient.address}")
+                else:
+                    print("Error: Transaction failed (insufficient funds?)\n")
+                    
+            elif command == 'mine':
+                if not blockchain.pending_transactions:
+                    print("Error: No pending transactions to mine\n")
+                    continue
+                    
+                miner_name = input("Miner wallet: ").strip().title()
+                if miner_name not in manager.wallets:
+                    print(f"Error: Wallet '{miner_name}' not found")
+                    continue
+                    
+                miner = manager.get_wallet(miner_name)
+                print(f"\n⛏ Mining block with {len(blockchain.pending_transactions)} pending transactions...")
+                
+                step_counter += 1
+                update_demo_state(blockchain, manager.wallets, step_counter,
+                                f"Mining Block {len(blockchain.chain)}...",
+                                f"Mining block with {len(blockchain.pending_transactions)} pending transactions")
+                
+                block = blockchain.mine_pending_transactions(miner.address)
+                if block:
+                    reward = blockchain.get_block_reward(len(blockchain.chain) - 1)
+                    print(f"✓ Block {block.index} mined!")
+                    print(f"  Hash: {block.hash}")
+                    print(f"  Transactions: {len(block.transactions)}")
+                    print(f"  Reward: {reward / 100000000} PYC\n")
+                    
+                    step_counter += 1
+                    update_demo_state(blockchain, manager.wallets, step_counter,
+                                    f"Block {block.index} Mined!",
+                                    f"Block confirmed! {miner_name} earned {reward / 100000000} PYC reward\n"
+                                    f"  Address: {miner.address}")
+                else:
+                    print("Error: Mining failed\n")
+                    
+            elif command == 'blockchain':
+                print(f"\nBlockchain Details:")
+                print(f"  Total Blocks: {len(blockchain.chain)}")
+                print(f"  Total Transactions: {sum(len(b.transactions) for b in blockchain.chain)}")
+                print(f"  Difficulty: {blockchain.difficulty}")
+                print(f"  Pending Transactions: {len(blockchain.pending_transactions)}")
+                print(f"  UTXO Set Size: {len(blockchain.utxo)}")
+                
+                total_minted = sum(blockchain.get_block_reward(i) for i in range(len(blockchain.chain)))
+                total_supply = sum(w.get_balance_btc(blockchain) for w in manager.wallets.values())
+                print(f"  Total Supply: {total_supply:.8f} PYC")
+                print(f"  Remaining Until Cap: {(21_000_000 - total_minted / 100000000):,.2f} PYC\n")
+                
+            elif command == 'validate':
+                print("\n⚙️ Validating blockchain...")
+                is_valid = blockchain.validate_chain()
+                if is_valid:
+                    print("✓ Blockchain is VALID!\n")
+                else:
+                    print("✗ Blockchain is INVALID!\n")
+                    
+            elif command in ['quit', 'exit']:
+                print("\n👋 Exiting interactive mode...")
+                break
+                
+            else:
+                print(f"Unknown command: '{command}'. Type 'help' for available commands.\n")
+                
+        except KeyboardInterrupt:
+            print("\n\n👋 Interactive mode interrupted.")
+            break
+        except Exception as e:
+            print(f"Error: {e}\n")
+    
+    # Save and exit
+    blockchain.save_to_file('blockchain.json')
+    manager.save_to_file('wallets.json')
+    print("\nFiles saved. Thanks for playing with PyCoin!")
+    print("Press Ctrl+C to stop the server and exit\n")
+    
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("\n\n👋 Demo stopped. Thanks for watching!")
+        sys.exit(0)
+
+
 def main():
     """Run the PyCoin demo with live visualization."""
     
@@ -117,9 +286,26 @@ Starting server and opening visualization...
     print("\n✨ Browser opened! Watch the magic happen...\n")
     
     # ============================================================================
-    # Step 1: Create Wallets
+    # Step 1: Create Blockchain
     # ============================================================================
-    print_section("STEP 1: Creating Wallets")
+    print_section("STEP 1: Creating Blockchain")
+    
+    blockchain = Blockchain(difficulty=4, initial_reward=50_00000000)
+    
+    print("Blockchain initialized")
+    print(f"  Difficulty: {blockchain.difficulty}")
+    print(f"  Initial Block Reward: {blockchain.initial_reward / 100000000} PYC")
+    print(f"  Halving Interval: Every {blockchain.halving_interval:,} blocks")
+    print(f"  Max Supply: 21,000,000 PYC (just like Bitcoin!)\n")
+    
+    update_demo_state(blockchain, {}, 1, "Blockchain Initialized",
+                     f"Max supply: 21 million PYC with halving every {blockchain.halving_interval:,} blocks")
+    time.sleep(2)
+    
+    # ============================================================================
+    # Step 2: Create Wallets
+    # ============================================================================
+    print_section("STEP 2: Creating Wallets")
     
     manager = WalletManager()
     alice = manager.create_wallet("Alice")
@@ -139,27 +325,14 @@ Starting server and opening visualization...
         f"    {miner.address}"
     )
     
-    update_demo_state(None, manager.wallets, 1, "Creating Wallets", narrative)
+    update_demo_state(blockchain, manager.wallets, 2, "Creating Wallets", narrative)
     time.sleep(2)
     
     # ============================================================================
-    # Step 2: Create Blockchain
+    # Step 3: Mine Genesis Block
     # ============================================================================
-    print_section("STEP 2: Creating Blockchain & Mining Genesis Block")
+    print_section("STEP 3: Mining Genesis Block")
     
-    blockchain = Blockchain(difficulty=4, initial_reward=50_00000000)
-    
-    print("Blockchain initialized")
-    print(f"  Difficulty: {blockchain.difficulty}")
-    print(f"  Initial Block Reward: {blockchain.initial_reward / 100000000} PYC")
-    print(f"  Halving Interval: Every {blockchain.halving_interval:,} blocks")
-    print(f"  Max Supply: 21,000,000 PYC (just like Bitcoin!)\n")
-    
-    update_demo_state(blockchain, manager.wallets, 2, "Blockchain Initialized",
-                     f"Max supply: 21 million PYC with halving every {blockchain.halving_interval:,} blocks")
-    time.sleep(2)
-    
-    # Mine genesis block
     update_demo_state(blockchain, manager.wallets, 3, "Mining Genesis Block...",
                      "Miner is solving the proof-of-work puzzle (finding nonce)...")
     
@@ -177,9 +350,9 @@ Starting server and opening visualization...
     time.sleep(3)
     
     # ============================================================================
-    # Step 3: Create Transactions
+    # Step 4: Create Transactions
     # ============================================================================
-    print_section("STEP 3: Creating Transactions")
+    print_section("STEP 4: Creating Transactions")
     
     print("Transaction 1: Miner -> Alice (20 PYC)")
     update_demo_state(blockchain, manager.wallets, 5, "Creating Transaction",
@@ -202,9 +375,9 @@ Starting server and opening visualization...
     time.sleep(2)
     
     # ============================================================================
-    # Step 4: Mine Block 1
+    # Step 5: Mine Block 1
     # ============================================================================
-    print_section("STEP 4: Mining Block 1")
+    print_section("STEP 5: Mining Block 1")
     
     print("Mining block with pending transactions...")
     update_demo_state(blockchain, manager.wallets, 7, "Mining Block 1...",
@@ -227,9 +400,9 @@ Starting server and opening visualization...
     time.sleep(3)
     
     # ============================================================================
-    # Step 5: More Transactions
+    # Step 6: More Transactions
     # ============================================================================
-    print_section("STEP 5: More Transactions")
+    print_section("STEP 6: More Transactions")
     
     print("Transaction 3: Alice -> Bob (5 PYC)")
     update_demo_state(blockchain, manager.wallets, 9, "Creating Transaction",
@@ -252,9 +425,9 @@ Starting server and opening visualization...
     time.sleep(2)
     
     # ============================================================================
-    # Step 6: Mine Block 2
+    # Step 7: Mine Block 2
     # ============================================================================
-    print_section("STEP 6: Mining Block 2")
+    print_section("STEP 7: Mining Block 2")
     
     print("Mining block with pending transactions...")
     update_demo_state(blockchain, manager.wallets, 11, "Mining Block 2...",
@@ -276,9 +449,9 @@ Starting server and opening visualization...
     time.sleep(2)
     
     # ============================================================================
-    # Step 7: Validate Blockchain
+    # Step 8: Validate Blockchain
     # ============================================================================
-    print_section("STEP 7: Validating Blockchain")
+    print_section("STEP 8: Validating Blockchain")
     
     print("Running blockchain validation...")
     update_demo_state(blockchain, manager.wallets, 13, "Validating Blockchain...",
@@ -350,15 +523,9 @@ Starting server and opening visualization...
     print("\nFor more information, see README.md")
     print("\n✨ Browser visualization is still running!")
     print("📊 Check http://localhost:7777/visualize.html")
-    print("\nPress Ctrl+C to stop the server and exit\n")
     
-    # Keep server running
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        print("\n\n👋 Demo stopped. Thanks for watching!")
-        sys.exit(0)
+    # Interactive mode
+    interactive_mode(blockchain, manager)
 
 
 if __name__ == "__main__":

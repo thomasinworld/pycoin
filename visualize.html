@@ -51,21 +51,23 @@
             margin: 0;
         }
 
-        .replay-button {
+        .restart-button {
             background: #3776ab;
             color: #ffd43b;
-            border: 1px solid #ffd43b;
-            padding: 8px 16px;
-            font-size: 0.9em;
+            border: 2px solid #ffd43b;
+            padding: 10px 20px;
+            font-size: 1.1em;
             cursor: pointer;
             font-family: 'Consolas', monospace;
             text-transform: lowercase;
             transition: all 0.2s;
+            font-weight: bold;
         }
 
-        .replay-button:hover {
+        .restart-button:hover {
             background: #ffd43b;
             color: #3776ab;
+            transform: scale(1.05);
         }
 
         .header-stats {
@@ -354,8 +356,8 @@
         <header id="main-header">
             <div class="header-left">
                 <h1><span class="prompt">>>></span> pycoin blockchain</h1>
-                <button class="replay-button" id="replay-btn" onclick="replayBlockchain()" style="display: none;">
-                    ⟲ replay
+                <button class="restart-button" id="restart-btn" onclick="restartDemo()" style="display: none;">
+                    🔄 restart
                 </button>
             </div>
             <div class="header-stats" id="header-stats"></div>
@@ -418,7 +420,7 @@
 
         function startLiveUpdates() {
             document.getElementById('terminal-output-section').style.display = 'block';
-            document.getElementById('replay-btn').style.display = 'block';
+            document.getElementById('restart-btn').style.display = 'block';
             liveUpdateInterval = setInterval(updateFromLiveDemo, 1000);
             updateFromLiveDemo();
         }
@@ -534,7 +536,7 @@
 
             document.getElementById('file-input-section').style.display = 'none';
             document.getElementById('terminal-output-section').style.display = 'block';
-            document.getElementById('replay-btn').style.display = 'block';
+            document.getElementById('restart-btn').style.display = 'block';
 
             displayStats();
             buildStaticTimeline();
@@ -719,17 +721,12 @@
             }
         }
 
-        function replayBlockchain() {
+        function restartDemo() {
             clearTimeout(animationState.intervalId);
             
-            if (isLiveMode) {
-                // For live mode, rebuild from current data
-                outputItems = [];
-                animationState.currentIndex = 0;
-            } else {
-                // For static mode, just reset animation
-                animationState.currentIndex = 0;
-            }
+            // Clear all output items
+            outputItems = [];
+            animationState.currentIndex = 0;
             
             // Clear display
             const container = document.getElementById('terminal-output');
@@ -737,7 +734,14 @@
                 container.innerHTML = '';
             }
             
-            setTimeout(() => startAnimation(), 500);
+            if (isLiveMode) {
+                // For live mode, reload the page to restart demo
+                window.location.reload();
+            } else {
+                // For static mode, rebuild timeline
+                buildStaticTimeline();
+                setTimeout(() => startAnimation(), 500);
+            }
         }
 
 
