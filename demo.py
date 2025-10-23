@@ -67,12 +67,17 @@ class DemoHTTPHandler(SimpleHTTPRequestHandler):
             super().do_GET()
     
     def do_POST(self):
-        content_length = int(self.headers['Content-Length'])
-        post_data = self.rfile.read(content_length)
-        data = json.loads(post_data.decode('utf-8'))
-        
-        self.send_header('Content-type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*')
+        try:
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data.decode('utf-8'))
+        except Exception as e:
+            self.send_response(400)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps({'success': False, 'error': 'Invalid request'}).encode())
+            return
         
         if self.path == '/api/create_wallet':
             try:
@@ -93,11 +98,15 @@ class DemoHTTPHandler(SimpleHTTPRequestHandler):
                 )
                 
                 self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
                 response = {'success': True, 'address': wallet.address}
                 self.wfile.write(json.dumps(response).encode())
             except Exception as e:
                 self.send_response(400)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
                 response = {'success': False, 'error': str(e)}
                 self.wfile.write(json.dumps(response).encode())
@@ -133,11 +142,15 @@ class DemoHTTPHandler(SimpleHTTPRequestHandler):
                 )
                 
                 self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
                 response = {'success': True, 'tx_id': tx.tx_id}
                 self.wfile.write(json.dumps(response).encode())
             except Exception as e:
                 self.send_response(400)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
                 response = {'success': False, 'error': str(e)}
                 self.wfile.write(json.dumps(response).encode())
@@ -179,6 +192,8 @@ class DemoHTTPHandler(SimpleHTTPRequestHandler):
                 )
                 
                 self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
                 response = {
                     'success': True,
@@ -188,12 +203,17 @@ class DemoHTTPHandler(SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps(response).encode())
             except Exception as e:
                 self.send_response(400)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
                 response = {'success': False, 'error': str(e)}
                 self.wfile.write(json.dumps(response).encode())
         else:
             self.send_response(404)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
+            self.wfile.write(json.dumps({'success': False, 'error': 'Endpoint not found'}).encode())
     
     def log_message(self, format, *args):
         pass  # Suppress logging

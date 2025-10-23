@@ -741,17 +741,27 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name: name })
                 });
+                
+                if (!response.ok) {
+                    const result = await response.json();
+                    showStatus('wallet-status', `Error: ${result.error || 'Failed to create wallet'}`, true);
+                    return;
+                }
+                
                 const result = await response.json();
                 
                 if (result.success) {
                     showStatus('wallet-status', `✓ Wallet '${name}' created! Address: ${result.address}`);
                     document.getElementById('new-wallet-name').value = '';
-                    // Refresh wallet map
-                    setTimeout(() => location.reload(), 2000);
+                    
+                    // Update wallet map immediately
+                    walletMap[result.address] = name;
+                    updateWalletDropdowns();
                 } else {
                     showStatus('wallet-status', `Error: ${result.error}`, true);
                 }
             } catch (error) {
+                console.error('Create wallet error:', error);
                 showStatus('wallet-status', `Error: ${error.message}`, true);
             }
         }
@@ -777,6 +787,13 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ from, to, amount, fee })
                 });
+                
+                if (!response.ok) {
+                    const result = await response.json();
+                    showStatus('tx-status', `Error: ${result.error || 'Transaction failed'}`, true);
+                    return;
+                }
+                
                 const result = await response.json();
                 
                 if (result.success) {
@@ -786,6 +803,7 @@
                     showStatus('tx-status', `Error: ${result.error}`, true);
                 }
             } catch (error) {
+                console.error('Send transaction error:', error);
                 showStatus('tx-status', `Error: ${error.message}`, true);
             }
         }
@@ -805,6 +823,13 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ miner })
                 });
+                
+                if (!response.ok) {
+                    const result = await response.json();
+                    showStatus('action-status', `Error: ${result.error || 'Mining failed'}`, true);
+                    return;
+                }
+                
                 const result = await response.json();
                 
                 if (result.success) {
@@ -813,6 +838,7 @@
                     showStatus('action-status', `Error: ${result.error}`, true);
                 }
             } catch (error) {
+                console.error('Mine block error:', error);
                 showStatus('action-status', `Error: ${error.message}`, true);
             }
         }
