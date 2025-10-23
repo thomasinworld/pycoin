@@ -608,7 +608,8 @@
 
         function addOutputItem(type, data) {
             outputItems.push({ type, data, id: Date.now() + Math.random() });
-            renderOutput();
+            // Don't auto-render here, let caller decide when to render
+            // This prevents multiple renders when adding multiple items
         }
 
         function renderOutput() {
@@ -658,6 +659,9 @@
                                 narrative: data.narrative ? data.narrative.toLowerCase() : ''
                             });
                             animationState.currentIndex = outputItems.length;
+                            
+                            // Force render immediately to show the new step
+                            renderOutput();
                         }
                     }
 
@@ -683,12 +687,19 @@
                                 addOutputItem('block', blockchainData.chain[i]);
                                 animationState.currentIndex = outputItems.length;
                             }
+                            // Force render after adding blocks
+                            renderOutput();
                         }
                     }
 
+                    // Show interactive panel after demo completes
+                    // But keep live updates running for new steps
                     if (data.completed && !demoCompleted) {
                         demoCompleted = true;
-                        showInteractivePanel();
+                        // Delay showing panel to ensure final step is visible
+                        setTimeout(() => {
+                            showInteractivePanel();
+                        }, 500);
                     }
                 })
                 .catch(error => console.error('Error:', error));
@@ -757,6 +768,9 @@
                     // Update wallet map immediately
                     walletMap[result.address] = name;
                     updateWalletDropdowns();
+                    
+                    // Force refresh to pick up the new step
+                    console.log('Wallet created, waiting for step update...');
                 } else {
                     showStatus('wallet-status', `Error: ${result.error}`, true);
                 }
