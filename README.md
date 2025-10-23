@@ -1,4 +1,4 @@
-# PyCoin - Learn Cryptocurrency by Building It
+# pycoin
 
 <div align="center">
 
