@@ -81,7 +81,7 @@ class DemoHTTPHandler(SimpleHTTPRequestHandler):
         
         if self.path == '/api/create_wallet':
             try:
-                name = data.get('name', '').strip().title()
+                name = data.get('name', '').strip()
                 if not name:
                     raise ValueError("Wallet name is required")
                 if name.lower() in [w.lower() for w in DEMO_STATE['wallets'].keys()]:
@@ -118,13 +118,21 @@ class DemoHTTPHandler(SimpleHTTPRequestHandler):
                 amount = float(data.get('amount', 0))
                 fee = float(data.get('fee', 0.001))
                 
-                if sender_name not in DEMO_STATE['wallets']:
-                    raise ValueError(f"Sender wallet '{sender_name}' not found")
-                if recipient_name not in DEMO_STATE['wallets']:
-                    raise ValueError(f"Recipient wallet '{recipient_name}' not found")
+                # Case-insensitive wallet lookup
+                sender = None
+                recipient = None
+                for name, wallet in DEMO_STATE['wallets'].items():
+                    if name.lower() == sender_name.lower():
+                        sender = wallet
+                        sender_name = name  # Use actual name
+                    if name.lower() == recipient_name.lower():
+                        recipient = wallet
+                        recipient_name = name  # Use actual name
                 
-                sender = DEMO_STATE['wallets'][sender_name]
-                recipient = DEMO_STATE['wallets'][recipient_name]
+                if not sender:
+                    raise ValueError(f"Sender wallet '{sender_name}' not found")
+                if not recipient:
+                    raise ValueError(f"Recipient wallet '{recipient_name}' not found")
                 
                 tx = sender.send(DEMO_STATE['blockchain'], recipient.address, amount, fee_btc=fee)
                 if not tx:
@@ -158,12 +166,19 @@ class DemoHTTPHandler(SimpleHTTPRequestHandler):
         elif self.path == '/api/mine_block':
             try:
                 miner_name = data.get('miner')
-                if miner_name not in DEMO_STATE['wallets']:
+                
+                # Case-insensitive wallet lookup
+                miner = None
+                for name, wallet in DEMO_STATE['wallets'].items():
+                    if name.lower() == miner_name.lower():
+                        miner = wallet
+                        miner_name = name  # Use actual name
+                        break
+                
+                if not miner:
                     raise ValueError(f"Miner wallet '{miner_name}' not found")
                 if not DEMO_STATE['blockchain'].pending_transactions:
                     raise ValueError("No pending transactions to mine")
-                
-                miner = DEMO_STATE['wallets'][miner_name]
                 block_index = len(DEMO_STATE['blockchain'].chain)
                 
                 DEMO_STATE['step'] += 1
@@ -282,7 +297,7 @@ def interactive_mode(blockchain: Blockchain, manager: WalletManager):
                     print(f"    Address: {wallet.address}\n")
                     
             elif command.startswith('create '):
-                name = command[7:].strip().title()
+                name = command[7:].strip()
                 if not name:
                     print("Error: Please provide a wallet name")
                     continue
@@ -300,8 +315,8 @@ def interactive_mode(blockchain: Blockchain, manager: WalletManager):
                 
             elif command == 'send':
                 print("\n--- Send PYC ---")
-                sender_name = input("From wallet: ").strip().title()
-                recipient_name = input("To wallet: ").strip().title()
+                sender_name = input("From wallet: ").strip()
+                recipient_name = input("To wallet: ").strip()
                 
                 if sender_name not in manager.wallets:
                     print(f"Error: Wallet '{sender_name}' not found")
@@ -339,7 +354,7 @@ def interactive_mode(blockchain: Blockchain, manager: WalletManager):
                     print("Error: No pending transactions to mine\n")
                     continue
                     
-                miner_name = input("Miner wallet: ").strip().title()
+                miner_name = input("Miner wallet: ").strip()
                 if miner_name not in manager.wallets:
                     print(f"Error: Wallet '{miner_name}' not found")
                     continue
