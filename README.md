@@ -53,19 +53,34 @@ python demo.py
 
 **What happens:**
 - ✨ **Opens your browser automatically** (http://localhost:7777)
-- 🔴 **Shows "LIVE DEMO" with blinking indicator**
-- 📝 **Displays what's happening** ("Alice sends 5 PYC to Bob")
-- ⛏️ **Blocks appear as they're mined**
-- 💰 **Wallet balances update in real-time**
-- ⛓️ **Watch the blockchain grow step-by-step**
+- 📺 **Python-themed terminal interface** (blue/yellow colors)
+- 📝 **Newest updates at top** (no scrolling to see latest!)
+- ⛏️ **Blocks appear as they're mined** (stacked vertically)
+- 💰 **Live stats in header** (blocks, transactions, supply, etc.)
+- 🎮 **Interactive mode** after demo completes
 
-**Features:**
-- Transaction narratives (easy to understand)
-- Live wallet balances
-- Real-time block mining
-- Step-by-step progress
-- Automatic visualization
-- No manual file loading needed!
+**Layout:**
+```
+┌───────────────────────────────────────┐
+│ >>> pycoin  | stats (live)           │
+├──────────────┬────────────────────────┤
+│  Sidebar     │  Terminal Output       │
+│  (locked)    │  (newest at top)       │
+│  🔄 restart  │  ↓ scroll for history  │
+│  💳 wallets  │                        │
+│  💸 send     │                        │
+│  ⛏ mine      │                        │
+└──────────────┴────────────────────────┘
+```
+
+**Interactive Features** (after initial demo):
+- Create new wallets
+- Send PYC between wallets
+- Mine blocks with any wallet
+- Validate blockchain
+- Show wallet balances
+- View blockchain info
+- Restart demo from scratch
 
 Press `Ctrl+C` when done to stop the server.
 
@@ -433,36 +448,57 @@ class WalletManager:
 
 ## 📊 Visualization
 
-The `visualize.html` provides a beautiful, interactive blockchain explorer:
+The `visualize.html` provides a beautiful, live blockchain visualization:
 
-### Features:
-- 📈 **Statistics Dashboard**
-  - Total blocks and transactions
-  - Current block reward
-  - Total minted supply
-  - Remaining until 21M cap
-  
-- 🔍 **Block Explorer**
-  - View all blocks in chain
-  - See transaction details
-  - Inspect hashes and nonces
-  - Visual chain links
+### Design:
+- 🎨 **Python Theme** - Blue (#3776ab) and yellow (#ffd43b) colors
+- 💻 **Terminal Aesthetic** - Monospace font (Consolas), dark background
+- 📱 **Full Viewport Layout** - No wasted space, everything on one screen
 
-- 💰 **Transaction Inspector**
-  - Inputs and outputs
-  - Amounts transferred
-  - Addresses involved
-  - Coinbase vs regular transactions
+### Live Statistics (Sticky Header):
+- **Blocks** - Total blocks mined
+- **Transactions** - All transactions across all blocks
+- **Reward** - Current mining reward (halves every 210k blocks)
+- **Minted** - Total PYC in circulation (from actual coinbase rewards)
+- **Difficulty** - Current proof-of-work difficulty
+- **Remaining** - PYC left until 21M cap
+
+### Terminal Output (Center Panel):
+- **Newest at Top** - Latest updates always visible, no scrolling needed
+- **Chronological Steps** - Every action logged (wallets, transactions, mining, validation)
+- **Block Details** - Full hashes, nonces, timestamps, Merkle roots
+- **Transaction Narratives** - "alice sends 5 pyc to bob (address1 → address2)"
+- **Wallet Names** - Addresses shown with names: "1A2b3C4d... (alice)"
+
+### Interactive Sidebar (Left):
+- **🔒 Locked Until Demo Completes** - Visible but disabled during initial demo
+- **🔄 Restart Demo** - Full reset and rerun from scratch
+- **💳 Create Wallet** - Add new wallets dynamically
+- **💸 Send Transaction** - Transfer PYC between any wallets
+- **⛏ Mine Block** - Process pending transactions
+- **✓ Validate Chain** - Check blockchain integrity
+- **👛 Show Wallets** - Display all wallet balances
+- **📊 Blockchain Info** - View chain statistics
+
+### Real-Time Features:
+- Updates every second during demo
+- All stats calculated from actual blockchain data
+- Blocks appear immediately when mined
+- Steps appear instantly when actions occur
+- No page reloads needed
+- Restart reruns entire demo in place
 
 ### Usage:
 ```bash
-# Generate blockchain data
+# Just run the demo - browser opens automatically!
 python demo.py
 
-# Open visualizer (auto-loads blockchain.json)
-open visualize.html
-
-# Or drag and drop blockchain.json into the web page
+# The visualization:
+# 1. Opens at http://localhost:7777/visualize.html
+# 2. Runs initial 15-step demo (wallets, transactions, mining)
+# 3. Unlocks interactive sidebar after demo completes
+# 4. You can create wallets, send PYC, mine blocks, etc.
+# 5. Click restart to run demo again from scratch
 ```
 
 ---
