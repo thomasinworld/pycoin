@@ -28,67 +28,55 @@
         header {
             background: linear-gradient(135deg, #3776ab 0%, #306998 100%);
             border: 2px solid #ffd43b;
-            padding: 15px 20px;
+            padding: 12px 20px;
             margin-bottom: 15px;
             font-family: 'Consolas', monospace;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         h1 {
             color: #ffd43b;
-            font-size: 1.8em;
+            font-size: 1.5em;
             font-weight: bold;
-            margin-bottom: 5px;
-            text-shadow: 2px 2px 0px rgba(0,0,0,0.3);
+            margin: 0;
         }
 
-        .subtitle {
-            color: #d4d4d4;
-            font-size: 0.95em;
-        }
-
-        .live-indicator {
-            display: inline-flex;
+        .header-stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
             align-items: center;
-            gap: 8px;
-            background: #ffd43b;
-            color: #1e1e1e;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-weight: bold;
-            margin-top: 10px;
-            font-size: 0.9em;
         }
 
-        .live-dot {
-            width: 8px;
-            height: 8px;
-            background: #1e1e1e;
-            border-radius: 50%;
-            animation: blink 1s infinite;
+        .header-stat {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
         }
 
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        #live-step {
-            background: rgba(255, 212, 59, 0.1);
-            border-left: 4px solid #ffd43b;
-            padding: 10px 15px;
-            margin-top: 10px;
-            font-size: 0.95em;
-        }
-
-        #live-message {
-            color: #ffd43b;
-            font-weight: bold;
-        }
-
-        #live-narrative {
+        .header-stat-label {
             color: #d4d4d4;
-            margin-top: 5px;
-            font-style: italic;
+            font-size: 0.7em;
+            text-transform: lowercase;
+        }
+
+        .header-stat-value {
+            color: #ffd43b;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .status-message {
+            background: rgba(255, 212, 59, 0.1);
+            border-left: 3px solid #ffd43b;
+            padding: 8px 15px;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            color: #ffd43b;
         }
 
         /* Compact Controls */
@@ -108,11 +96,11 @@
             background: #3776ab;
             color: #ffd43b;
             border: 1px solid #ffd43b;
-            padding: 6px 12px;
+            padding: 6px 14px;
             font-size: 0.85em;
             cursor: pointer;
             font-family: 'Consolas', monospace;
-            font-weight: bold;
+            text-transform: lowercase;
             transition: all 0.2s;
         }
 
@@ -121,102 +109,27 @@
             color: #3776ab;
         }
 
-        .speed-control {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .progress-info {
             color: #ffd43b;
+            font-size: 0.9em;
+            margin-left: auto;
         }
 
-        .speed-slider {
-            width: 100px;
-        }
-
-        .progress-bar {
-            flex: 1;
-            height: 20px;
-            background: #1e1e1e;
-            border: 1px solid #3776ab;
-            overflow: hidden;
-            position: relative;
-            min-width: 150px;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #3776ab, #ffd43b);
-            transition: width 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #1e1e1e;
-            font-weight: bold;
-            font-size: 0.85em;
-        }
-
-        /* Compact Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .stat-card {
-            background: #252526;
-            border: 1px solid #3776ab;
-            border-left: 3px solid #ffd43b;
-            padding: 8px 12px;
-        }
-
-        .stat-label {
-            color: #858585;
-            font-size: 0.75em;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-        }
-
-        .stat-value {
-            color: #ffd43b;
-            font-size: 1.3em;
-            font-weight: bold;
-        }
-
-        /* Horizontal Blockchain */
+        /* Vertical Blockchain */
         .blockchain-container {
             display: flex;
+            flex-direction: column;
             gap: 15px;
-            overflow-x: auto;
             padding: 15px 0;
             background: #1e1e1e;
         }
 
-        .blockchain-container::-webkit-scrollbar {
-            height: 8px;
-        }
-
-        .blockchain-container::-webkit-scrollbar-track {
-            background: #252526;
-        }
-
-        .blockchain-container::-webkit-scrollbar-thumb {
-            background: #3776ab;
-            border-radius: 4px;
-        }
-
-        .blockchain-container::-webkit-scrollbar-thumb:hover {
-            background: #ffd43b;
-        }
-
         .block {
-            min-width: 320px;
-            max-width: 320px;
             background: #252526;
             border: 2px solid #3776ab;
             padding: 12px;
             opacity: 0;
-            transform: translateX(-20px);
+            transform: translateY(20px);
             transition: all 0.4s ease-out;
             position: relative;
         }
@@ -233,7 +146,7 @@
 
         .block.appear {
             opacity: 1;
-            transform: translateX(0);
+            transform: translateY(0);
         }
 
         .block-header {
@@ -247,6 +160,7 @@
             font-weight: bold;
             color: #ffd43b;
             margin-bottom: 4px;
+            text-transform: lowercase;
         }
 
         .block-hash {
@@ -287,6 +201,7 @@
             margin-bottom: 6px;
             border-bottom: 1px solid #3776ab;
             padding-bottom: 4px;
+            text-transform: lowercase;
         }
 
         .transaction {
@@ -348,6 +263,7 @@
             font-size: 0.7em;
             font-weight: bold;
             margin-left: 6px;
+            text-transform: lowercase;
         }
 
         .badge.coinbase {
@@ -356,14 +272,12 @@
         }
 
         .chain-arrow {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 30px;
+            text-align: center;
             color: #ffd43b;
-            font-size: 2em;
+            font-size: 1.5em;
             opacity: 0;
             transition: opacity 0.3s;
+            padding: 5px 0;
         }
 
         .chain-arrow.visible {
@@ -388,9 +302,9 @@
             padding: 12px 24px;
             font-size: 1em;
             font-family: 'Consolas', monospace;
-            font-weight: bold;
             cursor: pointer;
             transition: all 0.2s;
+            text-transform: lowercase;
         }
 
         .load-button:hover {
@@ -407,52 +321,40 @@
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1><span class="prompt">>>></span> PyCoin Blockchain</h1>
-            <p class="subtitle">Python-powered cryptocurrency visualization</p>
+        <header id="main-header">
+            <h1><span class="prompt">>>></span> pycoin blockchain</h1>
+            <div class="header-stats" id="header-stats"></div>
         </header>
 
         <div class="file-input-wrapper" id="file-input-section">
-            <h2 style="color: #ffd43b; margin-bottom: 15px; font-size: 1.3em;">Load Blockchain Data</h2>
-            <p style="color: #858585; margin-bottom: 15px;">Select blockchain.json or run: <code style="background: #1e1e1e; padding: 4px 8px; color: #ffd43b;">python demo.py</code></p>
+            <h2 style="color: #ffd43b; margin-bottom: 15px; font-size: 1.3em; text-transform: lowercase;">load blockchain data</h2>
+            <p style="color: #858585; margin-bottom: 15px;">select blockchain.json or run: <code style="background: #1e1e1e; padding: 4px 8px; color: #ffd43b;">python demo.py</code></p>
             <input type="file" id="file-input" accept=".json">
             <button class="load-button" onclick="document.getElementById('file-input').click()">
-                [ Load File ]
+                [ load file ]
             </button>
+        </div>
+
+        <div id="status-section" style="display: none;">
+            <div class="status-message" id="status-message"></div>
         </div>
 
         <div id="controls-section" style="display: none;">
             <div class="controls">
                 <button class="control-button" id="replay-btn" onclick="replayBlockchain()">
-                    ⟲ Replay
+                    ⟲ replay
                 </button>
                 <button class="control-button" id="play-pause-btn" onclick="togglePlayPause()">
-                    ⏸ Pause
+                    ⏸ pause
                 </button>
                 <button class="control-button" id="skip-btn" onclick="skipToEnd()">
-                    ⏭ Skip
+                    ⏭ skip
                 </button>
-                <div class="speed-control">
-                    <label>Speed:</label>
-                    <input type="range" id="speed-slider" class="speed-slider" 
-                           min="0.5" max="3" step="0.5" value="1" 
-                           oninput="updateSpeed(this.value)">
-                    <span id="speed-value">1x</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progress-fill" style="width: 0%">
-                        <span id="progress-text">0/0</span>
-                    </div>
-                </div>
+                <div class="progress-info" id="progress-info">block 0/0</div>
             </div>
         </div>
 
-        <div id="stats-section" style="display: none;">
-            <div class="stats-grid" id="stats"></div>
-        </div>
-
         <div id="blockchain-section" style="display: none;">
-            <h3 style="color: #ffd43b; margin-bottom: 10px; font-size: 1.1em;"><span class="prompt">>>></span> Blockchain</h3>
             <div class="blockchain-container" id="blockchain"></div>
         </div>
     </div>
@@ -499,20 +401,7 @@
         }
 
         function startLiveUpdates() {
-            const header = document.querySelector('header');
-            const liveIndicator = document.createElement('div');
-            liveIndicator.innerHTML = `
-                <div class="live-indicator">
-                    <div class="live-dot"></div>
-                    LIVE DEMO
-                </div>
-                <div id="live-step">
-                    <div id="live-message">Initializing...</div>
-                    <div id="live-narrative"></div>
-                </div>
-            `;
-            header.appendChild(liveIndicator);
-
+            document.getElementById('status-section').style.display = 'block';
             liveUpdateInterval = setInterval(updateFromLiveDemo, 1000);
             updateFromLiveDemo();
         }
@@ -521,14 +410,18 @@
             fetch('/api/demo_state')
                 .then(response => response.json())
                 .then(data => {
-                    document.getElementById('live-message').textContent = `Step ${data.step}: ${data.message}`;
-                    document.getElementById('live-narrative').textContent = data.narrative || '';
+                    const statusEl = document.getElementById('status-message');
+                    if (statusEl) {
+                        statusEl.textContent = `step ${data.step}: ${data.message.toLowerCase()}`;
+                        if (data.narrative) {
+                            statusEl.textContent += ` | ${data.narrative.toLowerCase()}`;
+                        }
+                    }
 
                     if (data.blockchain) {
                         blockchainData = data.blockchain;
                         
                         document.getElementById('controls-section').style.display = 'block';
-                        document.getElementById('stats-section').style.display = 'block';
                         document.getElementById('blockchain-section').style.display = 'block';
                         
                         displayStats();
@@ -579,7 +472,6 @@
 
             document.getElementById('file-input-section').style.display = 'none';
             document.getElementById('controls-section').style.display = 'block';
-            document.getElementById('stats-section').style.display = 'block';
             document.getElementById('blockchain-section').style.display = 'block';
 
             displayStats();
@@ -588,7 +480,7 @@
         }
 
         function displayStats() {
-            const stats = document.getElementById('stats');
+            const stats = document.getElementById('header-stats');
             const chain = blockchainData.chain;
             const totalBlocks = chain.length;
             const totalTransactions = chain.reduce((sum, block) => sum + block.transactions.length, 0);
@@ -596,29 +488,29 @@
             const totalMinted = chain.reduce((sum, block, index) => sum + calculateBlockReward(index), 0);
 
             stats.innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-label">Blocks</div>
-                    <div class="stat-value">${totalBlocks}</div>
+                <div class="header-stat">
+                    <div class="header-stat-label">blocks</div>
+                    <div class="header-stat-value">${totalBlocks}</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-label">Transactions</div>
-                    <div class="stat-value">${totalTransactions}</div>
+                <div class="header-stat">
+                    <div class="header-stat-label">transactions</div>
+                    <div class="header-stat-value">${totalTransactions}</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-label">Reward</div>
-                    <div class="stat-value">${(currentReward / 100000000).toFixed(2)} PYC</div>
+                <div class="header-stat">
+                    <div class="header-stat-label">reward</div>
+                    <div class="header-stat-value">${(currentReward / 100000000).toFixed(2)} pyc</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-label">Minted</div>
-                    <div class="stat-value">${(totalMinted / 100000000).toFixed(2)} PYC</div>
+                <div class="header-stat">
+                    <div class="header-stat-label">minted</div>
+                    <div class="header-stat-value">${(totalMinted / 100000000).toFixed(2)} pyc</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-label">Difficulty</div>
-                    <div class="stat-value">${blockchainData.difficulty} zeros</div>
+                <div class="header-stat">
+                    <div class="header-stat-label">difficulty</div>
+                    <div class="header-stat-value">${blockchainData.difficulty} zeros</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-label">Remaining</div>
-                    <div class="stat-value">${(21000000 - totalMinted / 100000000).toFixed(0)} PYC</div>
+                <div class="header-stat">
+                    <div class="header-stat-label">remaining</div>
+                    <div class="header-stat-value">${((21000000 - totalMinted / 100000000) / 1000000).toFixed(1)}m pyc</div>
                 </div>
             `;
         }
@@ -646,11 +538,11 @@
                     container.appendChild(blockDiv);
 
                     if (index < blockchainData.chain.length - 1) {
-                        const arrow = document.createElement('div');
-                        arrow.className = 'chain-arrow';
-                        arrow.setAttribute('data-arrow-after', index);
-                        arrow.innerHTML = '→';
-                        container.appendChild(arrow);
+                    const arrow = document.createElement('div');
+                    arrow.className = 'chain-arrow';
+                    arrow.setAttribute('data-arrow-after', index);
+                    arrow.innerHTML = '↓';
+                    container.appendChild(arrow);
                     }
                 }
             });
@@ -659,7 +551,7 @@
         function generateBlockHTML(block) {
             return `
                 <div class="block-header">
-                    <div class="block-index">Block #${block.index}</div>
+                    <div class="block-index">block #${block.index}</div>
                     <div class="block-hash">${block.hash.substring(0, 24)}...</div>
                 </div>
                 
@@ -679,7 +571,7 @@
                 </div>
 
                 <div class="transactions-section">
-                    <div class="transactions-title">Transactions</div>
+                    <div class="transactions-title">transactions</div>
                     ${block.transactions.map(tx => generateTransactionHTML(tx)).join('')}
                 </div>
             `;
@@ -691,23 +583,23 @@
             
             if (isCoinbase) {
                 const reward = tx.outputs[0].amount / 100000000;
-                narrative = `⛏ Mining → ${reward.toFixed(2)} PYC`;
+                narrative = `⛏ mining → ${reward.toFixed(2)} pyc`;
             } else if (tx.outputs.length >= 2) {
                 const amount = tx.outputs[0].amount / 100000000;
                 const from = tx.outputs[1].recipient_address.substring(0, 6);
                 const to = tx.outputs[0].recipient_address.substring(0, 6);
-                narrative = `${from}... → ${to}... (${amount.toFixed(2)} PYC)`;
+                narrative = `${from}... → ${to}... (${amount.toFixed(2)} pyc)`;
             }
 
             return `
                 <div class="transaction ${isCoinbase ? 'coinbase' : ''}">
                     ${narrative ? `<div class="tx-narrative">${narrative}</div>` : ''}
-                    <div class="tx-id">TX: ${tx.tx_id.substring(0, 16)}...<span class="badge ${isCoinbase ? 'coinbase' : ''}">${isCoinbase ? 'COINBASE' : 'TX'}</span></div>
+                    <div class="tx-id">tx: ${tx.tx_id.substring(0, 16)}...<span class="badge ${isCoinbase ? 'coinbase' : ''}">${isCoinbase ? 'coinbase' : 'tx'}</span></div>
                     <div class="tx-flow">
                         <div class="tx-from">
                             ${tx.outputs.map(out => `
                                 <div><span class="address-short">${out.recipient_address.substring(0, 8)}...</span></div>
-                                <div class="amount">${(out.amount / 100000000).toFixed(4)} PYC</div>
+                                <div class="amount">${(out.amount / 100000000).toFixed(4)} pyc</div>
                             `).join('')}
                         </div>
                     </div>
@@ -750,10 +642,11 @@
         function updateProgress() {
             const total = blockchainData.chain.length;
             const current = animationState.currentBlock;
-            const percentage = (current / total) * 100;
             
-            document.getElementById('progress-fill').style.width = percentage + '%';
-            document.getElementById('progress-text').textContent = `${current}/${total}`;
+            const progressInfo = document.getElementById('progress-info');
+            if (progressInfo) {
+                progressInfo.textContent = `block ${current}/${total}`;
+            }
         }
 
         function togglePlayPause() {
@@ -768,7 +661,7 @@
         }
 
         function updatePlayPauseButton(isPlaying) {
-            document.getElementById('play-pause-btn').innerHTML = isPlaying ? '⏸ Pause' : '▶ Play';
+            document.getElementById('play-pause-btn').innerHTML = isPlaying ? '⏸ pause' : '▶ play';
         }
 
         function replayBlockchain() {
@@ -795,10 +688,6 @@
             document.querySelectorAll('.chain-arrow').forEach(arrow => arrow.classList.add('visible'));
         }
 
-        function updateSpeed(value) {
-            animationState.speed = parseFloat(value);
-            document.getElementById('speed-value').textContent = value + 'x';
-        }
 
         checkLiveMode();
     </script>
