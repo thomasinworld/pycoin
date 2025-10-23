@@ -14,11 +14,26 @@ An educational cryptocurrency implementation in Python to understand how blockch
 
 ## Installation
 
+1. **Clone the repository:**
+```bash
+git clone git@github.com:thomasinworld/pycoin.git
+cd pycoin
+```
+
+2. **Create a virtual environment (recommended):**
+```bash
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+3. **Install dependencies:**
 ```bash
 pip install -r requirements.txt
 ```
 
 ## Quick Start
+
+Run the demo script to see PyCoin in action:
 
 ```bash
 python demo.py
@@ -37,15 +52,22 @@ This will demonstrate:
 - **Base Unit**: guido (named after Python's creator, Guido van Rossum)
 - **Conversion**: 1 PYC = 100,000,000 guidos
 
-## Architecture
+## Project Structure
 
-- `crypto.py` - Cryptographic utilities
-- `keys.py` - Key generation and address creation
-- `transaction.py` - Transaction structure and signing
-- `block.py` - Block structure and merkle trees
-- `blockchain.py` - Blockchain management and mining
-- `wallet.py` - Wallet functionality
-- `demo.py` - Demonstration script
+```
+pycoin/
+├── core/                    # Core blockchain implementation
+│   ├── __init__.py         # Package initialization
+│   ├── crypto.py           # Cryptographic utilities
+│   ├── keys.py             # Key generation and address creation
+│   ├── transaction.py      # Transaction structure and signing
+│   ├── block.py            # Block structure and merkle trees
+│   ├── blockchain.py       # Blockchain management and mining
+│   └── wallet.py           # Wallet functionality
+├── demo.py                 # Demonstration script
+├── requirements.txt        # Python dependencies
+└── README.md              # Project documentation
+```
 
 ## Educational Purpose
 

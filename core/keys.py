@@ -8,7 +8,7 @@ import ecdsa
 from ecdsa import SECP256k1, SigningKey, VerifyingKey
 from typing import Optional
 
-from crypto import (
+from .crypto import (
     sha256, hash160, base58check_encode, base58check_decode,
     int_to_bytes, bytes_to_int, bytes_to_hex
 )

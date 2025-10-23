@@ -6,8 +6,8 @@ Manages the chain of blocks, validates transactions, and handles mining.
 import json
 from typing import List, Optional, Dict
 
-from block import Block, create_genesis_block
-from transaction import Transaction, TransactionOutput, create_coinbase_transaction
+from .block import Block, create_genesis_block
+from .transaction import Transaction, TransactionOutput, create_coinbase_transaction
 
 
 class Blockchain:

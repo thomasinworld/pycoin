@@ -11,8 +11,8 @@ Demonstrates a complete PyCoin implementation flow:
 """
 
 import sys
-from wallet import Wallet, WalletManager
-from blockchain import Blockchain
+from core.wallet import Wallet, WalletManager
+from core.blockchain import Blockchain
 
 
 def print_section(title: str) -> None:

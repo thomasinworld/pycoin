@@ -6,8 +6,8 @@ import json
 import time
 from typing import List, Optional
 
-from crypto import double_sha256, bytes_to_hex
-from transaction import Transaction
+from .crypto import double_sha256, bytes_to_hex
+from .transaction import Transaction
 
 
 def calculate_merkle_root(transactions: List[Transaction]) -> str:
@@ -276,7 +276,7 @@ def create_genesis_block(
     Returns:
         Genesis block
     """
-    from transaction import create_coinbase_transaction
+    from .transaction import create_coinbase_transaction
     
     # Create coinbase transaction
     coinbase = create_coinbase_transaction(miner_address, reward, 0)

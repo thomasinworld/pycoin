@@ -6,9 +6,9 @@ Manages keys, creates transactions, and tracks balance.
 import json
 from typing import List, Optional
 
-from keys import PrivateKey, PublicKey, generate_address
-from transaction import Transaction, TransactionInput, TransactionOutput
-from blockchain import Blockchain
+from .keys import PrivateKey, PublicKey, generate_address
+from .transaction import Transaction, TransactionInput, TransactionOutput
+from .blockchain import Blockchain
 
 
 class Wallet:
