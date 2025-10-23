@@ -283,6 +283,110 @@
             background: #ffc107;
             color: #333;
         }
+
+        /* Animation Controls */
+        .controls {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-button:hover {
+            background: #764ba2;
+            transform: scale(1.05);
+        }
+
+        .control-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f8f9fa;
+            padding: 10px 20px;
+            border-radius: 8px;
+        }
+
+        .speed-slider {
+            width: 150px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 30px;
+            background: #f0f0f0;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            min-width: 200px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        /* Block animations */
+        .block {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.6s ease-out;
+        }
+
+        .block.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .chain-arrow {
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .chain-arrow.visible {
+            opacity: 1;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .block.mining {
+            animation: pulse 1s infinite;
+        }
     </style>
 </head>
 <body>
@@ -301,6 +405,32 @@
             </button>
         </div>
 
+        <div id="controls-section" style="display: none;">
+            <div class="controls">
+                <button class="control-button" id="replay-btn" onclick="replayBlockchain()">
+                    🔄 Replay Animation
+                </button>
+                <button class="control-button" id="play-pause-btn" onclick="togglePlayPause()">
+                    ⏸️ Pause
+                </button>
+                <button class="control-button" id="skip-btn" onclick="skipToEnd()">
+                    ⏭️ Skip to End
+                </button>
+                <div class="speed-control">
+                    <label for="speed-slider">⚡ Speed:</label>
+                    <input type="range" id="speed-slider" class="speed-slider" 
+                           min="0.5" max="3" step="0.5" value="1" 
+                           oninput="updateSpeed(this.value)">
+                    <span id="speed-value">1x</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill" style="width: 0%">
+                        <span id="progress-text">0 / 0 blocks</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div id="stats-section" style="display: none;">
             <div class="stats-grid" id="stats"></div>
         </div>
@@ -312,6 +442,13 @@
 
     <script>
         let blockchainData = null;
+        let animationState = {
+            currentBlock: 0,
+            isPlaying: true,
+            speed: 1,
+            intervalId: null,
+            baseDelay: 2000 // 2 seconds per block
+        };
 
         document.getElementById('file-input').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -333,11 +470,130 @@
             if (!blockchainData) return;
 
             document.getElementById('file-input-section').style.display = 'none';
+            document.getElementById('controls-section').style.display = 'block';
             document.getElementById('stats-section').style.display = 'block';
             document.getElementById('blockchain-section').style.display = 'block';
 
             displayStats();
             displayBlocks();
+            startAnimation();
+        }
+
+        function startAnimation() {
+            animationState.currentBlock = 0;
+            animationState.isPlaying = true;
+            updateProgress();
+            animateNextBlock();
+        }
+
+        function animateNextBlock() {
+            if (!animationState.isPlaying) return;
+
+            if (animationState.currentBlock < blockchainData.chain.length) {
+                const blockIndex = animationState.currentBlock;
+                
+                // Show the block
+                const blockElement = document.querySelector(`[data-block-index="${blockIndex}"]`);
+                if (blockElement) {
+                    blockElement.classList.add('mining');
+                    
+                    setTimeout(() => {
+                        blockElement.classList.remove('mining');
+                        blockElement.classList.add('visible');
+                        
+                        // Show arrow after block
+                        const arrowElement = document.querySelector(`[data-arrow-after="${blockIndex}"]`);
+                        if (arrowElement) {
+                            arrowElement.classList.add('visible');
+                        }
+                        
+                        animationState.currentBlock++;
+                        updateProgress();
+                        
+                        // Schedule next block
+                        animationState.intervalId = setTimeout(
+                            animateNextBlock, 
+                            animationState.baseDelay / animationState.speed
+                        );
+                    }, 500); // Mining animation duration
+                }
+            } else {
+                // Animation complete
+                updatePlayPauseButton(false);
+            }
+        }
+
+        function updateProgress() {
+            const total = blockchainData.chain.length;
+            const current = animationState.currentBlock;
+            const percentage = (current / total) * 100;
+            
+            const progressFill = document.getElementById('progress-fill');
+            const progressText = document.getElementById('progress-text');
+            
+            progressFill.style.width = percentage + '%';
+            progressText.textContent = `${current} / ${total} blocks`;
+        }
+
+        function togglePlayPause() {
+            animationState.isPlaying = !animationState.isPlaying;
+            updatePlayPauseButton(animationState.isPlaying);
+            
+            if (animationState.isPlaying) {
+                animateNextBlock();
+            } else {
+                clearTimeout(animationState.intervalId);
+            }
+        }
+
+        function updatePlayPauseButton(isPlaying) {
+            const btn = document.getElementById('play-pause-btn');
+            btn.innerHTML = isPlaying ? '⏸️ Pause' : '▶️ Play';
+        }
+
+        function replayBlockchain() {
+            // Hide all blocks and arrows
+            document.querySelectorAll('.block').forEach(block => {
+                block.classList.remove('visible', 'mining');
+            });
+            document.querySelectorAll('.chain-arrow').forEach(arrow => {
+                arrow.classList.remove('visible');
+            });
+            
+            // Reset and start
+            clearTimeout(animationState.intervalId);
+            animationState.currentBlock = 0;
+            animationState.isPlaying = true;
+            updatePlayPauseButton(true);
+            updateProgress();
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Start animation
+            setTimeout(animateNextBlock, 500);
+        }
+
+        function skipToEnd() {
+            clearTimeout(animationState.intervalId);
+            animationState.currentBlock = blockchainData.chain.length;
+            animationState.isPlaying = false;
+            updatePlayPauseButton(false);
+            updateProgress();
+            
+            // Show all blocks and arrows
+            document.querySelectorAll('.block').forEach(block => {
+                block.classList.add('visible');
+                block.classList.remove('mining');
+            });
+            document.querySelectorAll('.chain-arrow').forEach(arrow => {
+                arrow.classList.add('visible');
+            });
+        }
+
+        function updateSpeed(value) {
+            animationState.speed = parseFloat(value);
+            document.getElementById('speed-value').textContent = value + 'x';
         }
 
         function displayStats() {
@@ -389,48 +645,50 @@
             container.innerHTML = '';
 
             blockchainData.chain.forEach((block, index) => {
-                const blockElement = document.createElement('div');
-                blockElement.innerHTML = `
-                    <div class="block">
-                        <div class="block-header">
-                            <div class="block-index">Block #${block.index}</div>
-                            <div class="block-hash">
-                                <strong>Hash:</strong> ${block.hash}
-                            </div>
-                        </div>
-                        
-                        <div class="block-details">
-                            <div class="detail-item">
-                                <div class="detail-label">Previous Hash</div>
-                                <div class="detail-value" style="font-size: 0.8em; word-break: break-all;">${block.previous_hash.substring(0, 16)}...</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Merkle Root</div>
-                                <div class="detail-value" style="font-size: 0.8em; word-break: break-all;">${block.merkle_root.substring(0, 16)}...</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Nonce</div>
-                                <div class="detail-value">${block.nonce.toLocaleString()}</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Timestamp</div>
-                                <div class="detail-value">${new Date(block.timestamp * 1000).toLocaleString()}</div>
-                            </div>
-                        </div>
-
-                        <div class="transactions">
-                            <div class="transactions-title">
-                                💰 Transactions (${block.transactions.length})
-                            </div>
-                            ${block.transactions.map((tx, txIndex) => generateTransactionHTML(tx, txIndex)).join('')}
+                const blockDiv = document.createElement('div');
+                blockDiv.className = 'block';
+                blockDiv.setAttribute('data-block-index', index);
+                
+                blockDiv.innerHTML = `
+                    <div class="block-header">
+                        <div class="block-index">Block #${block.index}</div>
+                        <div class="block-hash">
+                            <strong>Hash:</strong> ${block.hash}
                         </div>
                     </div>
+                    
+                    <div class="block-details">
+                        <div class="detail-item">
+                            <div class="detail-label">Previous Hash</div>
+                            <div class="detail-value" style="font-size: 0.8em; word-break: break-all;">${block.previous_hash.substring(0, 16)}...</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Merkle Root</div>
+                            <div class="detail-value" style="font-size: 0.8em; word-break: break-all;">${block.merkle_root.substring(0, 16)}...</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Nonce</div>
+                            <div class="detail-value">${block.nonce.toLocaleString()}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Timestamp</div>
+                            <div class="detail-value">${new Date(block.timestamp * 1000).toLocaleString()}</div>
+                        </div>
+                    </div>
+
+                    <div class="transactions">
+                        <div class="transactions-title">
+                            💰 Transactions (${block.transactions.length})
+                        </div>
+                        ${block.transactions.map((tx, txIndex) => generateTransactionHTML(tx, txIndex)).join('')}
+                    </div>
                 `;
-                container.appendChild(blockElement);
+                container.appendChild(blockDiv);
 
                 if (index < blockchainData.chain.length - 1) {
                     const arrow = document.createElement('div');
                     arrow.className = 'chain-arrow';
+                    arrow.setAttribute('data-arrow-after', index);
                     arrow.innerHTML = '⬇';
                     container.appendChild(arrow);
                 }
