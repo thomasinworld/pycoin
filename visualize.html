@@ -98,19 +98,20 @@
             background: #3776ab;
             color: #ffd43b;
             border: 2px solid #ffd43b;
-            padding: 10px 20px;
-            font-size: 1.1em;
+            padding: 12px 20px;
+            font-size: 1.05em;
             cursor: pointer;
             font-family: 'Consolas', monospace;
             text-transform: lowercase;
             transition: all 0.2s;
             font-weight: bold;
+            margin-bottom: 10px;
         }
 
         .restart-button:hover {
             background: #ffd43b;
             color: #3776ab;
-            transform: scale(1.05);
+            transform: scale(1.02);
         }
 
         .header-stats {
@@ -499,9 +500,6 @@
         <header id="main-header">
             <div class="header-left">
                 <h1><span class="prompt">>>></span> pycoin</h1>
-                <button class="restart-button" id="restart-btn" onclick="restartDemo()" style="display: none;">
-                    🔄 restart
-                </button>
             </div>
             <div class="header-stats" id="header-stats"></div>
         </header>
@@ -525,6 +523,13 @@
             <div class="sidebar disabled" id="sidebar">
                 <div id="interactive-panel" class="interactive-panel active">
             <div class="panel-title">🎮 interactive mode</div>
+            
+            <!-- Restart Section -->
+            <div class="control-section" style="text-align: center;">
+                <button class="restart-button" id="restart-btn" onclick="restartDemo()" style="display: none; width: 100%;">
+                    🔄 restart demo
+                </button>
+            </div>
             
             <!-- Create Wallet Section -->
             <div class="control-section">
